@@ -1,0 +1,190 @@
+{
+    "schema_version": 1,
+    "profile_id": "hexapod-standard-v1",
+    "profile_revision": 1,
+    "joint_count": 18,
+    "angle_unit": "centidegree",
+    "rate_unit": "centidegree_per_second",
+    "joints": [
+        {
+            "index": 0,
+            "name": "rf_coxa",
+            "channel": 12,
+            "direction": -1,
+            "offset_cd": -400,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 1,
+            "name": "rf_femur",
+            "channel": 13,
+            "direction": 1,
+            "offset_cd": 3700,
+            "servo_min_cd": -6300,
+            "servo_max_cd": 7700,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 2,
+            "name": "rf_tibia",
+            "channel": 14,
+            "direction": 1,
+            "offset_cd": -2900,
+            "servo_min_cd": -1900,
+            "servo_max_cd": 10100,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 3,
+            "name": "rm_coxa",
+            "channel": 6,
+            "direction": -1,
+            "offset_cd": 700,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 4,
+            "name": "rm_femur",
+            "channel": 7,
+            "direction": 1,
+            "offset_cd": 4000,
+            "servo_min_cd": -6000,
+            "servo_max_cd": 8000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 5,
+            "name": "rm_tibia",
+            "channel": 8,
+            "direction": 1,
+            "offset_cd": -3500,
+            "servo_min_cd": -2500,
+            "servo_max_cd": 9500,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 6,
+            "name": "rb_coxa",
+            "channel": 0,
+            "direction": -1,
+            "offset_cd": 600,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 7,
+            "name": "rb_femur",
+            "channel": 1,
+            "direction": 1,
+            "offset_cd": 4500,
+            "servo_min_cd": -5500,
+            "servo_max_cd": 8500,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 8,
+            "name": "rb_tibia",
+            "channel": 2,
+            "direction": 1,
+            "offset_cd": -4200,
+            "servo_min_cd": -3200,
+            "servo_max_cd": 8800,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 9,
+            "name": "lf_coxa",
+            "channel": 15,
+            "direction": -1,
+            "offset_cd": 900,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 10,
+            "name": "lf_femur",
+            "channel": 16,
+            "direction": 1,
+            "offset_cd": 4800,
+            "servo_min_cd": -5200,
+            "servo_max_cd": 8800,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 11,
+            "name": "lf_tibia",
+            "channel": 17,
+            "direction": 1,
+            "offset_cd": -4000,
+            "servo_min_cd": -3000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 12,
+            "name": "lm_coxa",
+            "channel": 9,
+            "direction": -1,
+            "offset_cd": 600,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 13,
+            "name": "lm_femur",
+            "channel": 10,
+            "direction": 1,
+            "offset_cd": 3100,
+            "servo_min_cd": -6900,
+            "servo_max_cd": 7100,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 14,
+            "name": "lm_tibia",
+            "channel": 11,
+            "direction": 1,
+            "offset_cd": -3900,
+            "servo_min_cd": -2900,
+            "servo_max_cd": 9100,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 15,
+            "name": "lb_coxa",
+            "channel": 3,
+            "direction": -1,
+            "offset_cd": 800,
+            "servo_min_cd": -9000,
+            "servo_max_cd": 9000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 16,
+            "name": "lb_femur",
+            "channel": 4,
+            "direction": 1,
+            "offset_cd": 4000,
+            "servo_min_cd": -6000,
+            "servo_max_cd": 8000,
+            "max_rate_cd_s": null
+        },
+        {
+            "index": 17,
+            "name": "lb_tibia",
+            "channel": 5,
+            "direction": 1,
+            "offset_cd": -3500,
+            "servo_min_cd": -2500,
+            "servo_max_cd": 9500,
+            "max_rate_cd_s": null
+        }
+    ]
+}
