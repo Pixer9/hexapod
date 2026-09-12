@@ -1,0 +1,32 @@
+# Python environments
+.venv/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime
+logs/
+*.log
+*.pid
+
+# IDE local state
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
