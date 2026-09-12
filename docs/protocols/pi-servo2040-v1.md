@@ -182,7 +182,7 @@ HX1|42|STOP|A1B2C3D4
 Full conceptual frame:
 
 ```text
-HX1|42|STOP|A1B2C3D4|7F21\n
+HX1|42|STOP|A1B2C3D4|972B
 ```
 
 The bytes included in the CRC calculation are exactly:
