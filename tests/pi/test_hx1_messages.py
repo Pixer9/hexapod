@@ -59,6 +59,30 @@ class HX1MessageTests(unittest.TestCase):
         self.assertEqual(message.capabilities, 0x21)
         self.assertEqual(message.state, "DISARMED")
 
+    def test_info_allows_zero_profile_revision_for_diagnostic_fallback(self):
+        raw = encode_frame(
+            91,
+            "INFO",
+            8,
+            "A1B2C3D4",
+            1,
+            "fw-1.0",
+            "mcu-123",
+            "invalid-profile",
+            0,
+            "0" * 64,
+            18,
+            "00000000",
+            "FAULT",
+        )
+
+        message = parse_inbound(parse_frame(raw))
+
+        self.assertIsInstance(message, HX1Info)
+        self.assertEqual(message.profile_id, "invalid-profile")
+        self.assertEqual(message.profile_revision, 0)
+        self.assertEqual(message.state, "FAULT")
+
     def test_ack_parses(self):
         raw = encode_frame(
             10,

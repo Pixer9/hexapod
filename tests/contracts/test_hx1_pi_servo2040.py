@@ -10,6 +10,7 @@ without the other side changing with it.
 from __future__ import annotations
 
 from dataclasses import replace
+import importlib
 import json
 import sys
 import unittest
@@ -35,6 +36,8 @@ ACTUATOR_PROFILE_PATH = (
 # coexist in one CPython process.
 sys.path.insert(0, str(FIRMWARE_SRC))
 sys.path.insert(0, str(PI_SRC))
+
+firmware_main = importlib.import_module("main")
 
 from hexapod.hx1.client import (  # noqa: E402
     HX1ClientCore,
@@ -690,6 +693,59 @@ class WireIntegrationContractTests(unittest.TestCase):
         self.assertFalse(status.command_valid)
         self.assertIsNone(status.commanded_joint_cd)
         self.assertFalse(hardware.enabled)
+
+    def test_invalid_profile_fallback_info_becomes_peer_mismatch(self):
+        profile = firmware_main.InvalidProfile()
+        runtime, state_machine, hardware = _make_runtime(
+            profile
+        )
+
+        self.assertFalse(runtime.perform_self_test(0))
+        self.assertEqual(
+            state_machine.state,
+            MCUState.FAULT,
+        )
+        self.assertEqual(
+            state_machine.fault,
+            MCUFault.PROFILE,
+        )
+        self.assertFalse(hardware.enabled)
+
+        client = HX1ClientCore(self.base_config)
+        hello = client.hello()
+
+        responses = runtime.handle_frame(
+            hello.frame,
+            10,
+        )
+        self.assertEqual(len(responses), 1)
+
+        _, message_type, fields = mcu_parse_frame(
+            responses[0]
+        )
+        self.assertEqual(message_type, "INFO")
+        self.assertEqual(fields[5], "invalid-profile")
+        self.assertEqual(fields[6], "0")
+        self.assertEqual(fields[10], MCUState.FAULT)
+
+        with self.assertRaises(HX1PeerMismatchError) as context:
+            client.accept_frame(responses[0])
+
+        detail = str(context.exception)
+        self.assertIn("profile id", detail)
+        self.assertIn("profile revision 0", detail)
+
+        # The MCU preserves a diagnostic session, but it does not grant
+        # profile-matched control authority. The Pi rejects local authority.
+        self.assertEqual(
+            state_machine.session_id,
+            SESSION,
+        )
+        self.assertFalse(
+            state_machine.session_profile_match
+        )
+        self.assertFalse(client.negotiated)
+        self.assertIsNone(client.session)
 
     def test_profile_mismatch_is_rejected_by_pi_after_mcu_info(self):
         profile = load_profile(

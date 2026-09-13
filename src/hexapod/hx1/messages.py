@@ -433,7 +433,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
             ),
             mcu_id=_token(fields[4], "mcu_id"),
             profile_id=_token(fields[5], "profile_id"),
-            profile_revision=_positive_int(
+            profile_revision=_uint32(
                 fields[6],
                 "profile_revision",
             ),
