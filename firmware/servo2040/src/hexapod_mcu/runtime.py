@@ -110,17 +110,7 @@ class RuntimeCoordinator:
         self.semantic_errors = 0
         self.internal_errors = 0
 
-    # ------------------------------------------------------------------
-    # Boot / self-test
-    # ------------------------------------------------------------------
-
     def perform_self_test(self, now_ms):
-        """Run the minimum release-candidate safety self-test.
-
-        The current migrated actuator profile intentionally fails this method
-        until every ``max_rate_cd_s`` is qualified and the profile is compatible
-        with the configured ServoCluster value range.
-        """
         sm = self.state_machine
 
         if sm.state != State.BOOTING:
@@ -145,11 +135,25 @@ class RuntimeCoordinator:
         try:
             self.profile.require_arm_qualified()
             self.hardware.require_profile_compatible(self.profile)
-        except (ProfileQualificationError, HardwareCompatibilityError):
+        except ProfileQualificationError:
             sm.complete_self_test(
                 False,
                 now_ms=now_ms,
                 fault_code=Fault.PROFILE,
+            )
+            return False
+        except HardwareCompatibilityError:
+            sm.complete_self_test(
+                False,
+                now_ms=now_ms,
+                fault_code=Fault.PROFILE,
+            )
+            return False
+        except HardwareError:
+            sm.complete_self_test(
+                False,
+                now_ms=now_ms,
+                fault_code=Fault.HARDWARE,
             )
             return False
         except Exception:
@@ -163,12 +167,7 @@ class RuntimeCoordinator:
         sm.complete_self_test(True, now_ms=now_ms)
         return True
 
-    # ------------------------------------------------------------------
-    # Raw frame entry point
-    # ------------------------------------------------------------------
-
     def handle_frame(self, raw_frame, now_ms):
-        """Handle one complete raw HX1 frame and return response frames."""
         try:
             seq, message_type, fields = parse_frame(raw_frame)
         except ProtocolError:
@@ -227,10 +226,6 @@ class RuntimeCoordinator:
                 Error.UNSUPPORTED,
             ),
         )
-
-    # ------------------------------------------------------------------
-    # Commands
-    # ------------------------------------------------------------------
 
     def _hello(self, seq, fields, now_ms):
         if len(fields) != 2:
@@ -307,7 +302,6 @@ class RuntimeCoordinator:
         if not result:
             return self._nack(seq, "HEARTBEAT", result.error)
 
-        # Normal valid heartbeats are intentionally not ACKed.
         return ()
 
     def _stage(self, seq, fields, now_ms):
@@ -316,6 +310,17 @@ class RuntimeCoordinator:
 
         try:
             session = _parse_session(fields[0])
+        except ValueError:
+            return self._nack(seq, "STAGE", Error.BAD_VALUE)
+
+        state_error = self._expected_state_error(State.DISARMED)
+        if state_error is not None:
+            return self._nack(seq, "STAGE", state_error)
+
+        if not self.state_machine.session_matches(session):
+            return self._nack(seq, "STAGE", Error.BAD_SESSION)
+
+        try:
             target = _parse_joint_vector(fields[1:])
         except ValueError:
             return self._nack(seq, "STAGE", Error.BAD_VALUE)
@@ -364,10 +369,15 @@ class RuntimeCoordinator:
         try:
             self.profile.require_arm_qualified()
             self.hardware.require_profile_compatible(self.profile)
-        except ProfileQualificationError:
+        except (ProfileQualificationError, HardwareCompatibilityError):
             return self._nack(seq, "ARM", Error.NOT_READY)
-        except HardwareCompatibilityError:
-            return self._nack(seq, "ARM", Error.NOT_READY)
+        except HardwareError:
+            return self._fault_after_command(
+                seq,
+                "ARM",
+                Fault.HARDWARE,
+                now_ms,
+            )
 
         result = self.state_machine.arm(session, now_ms)
         if not result:
@@ -524,7 +534,6 @@ class RuntimeCoordinator:
         )
 
         if not result:
-            # Single-threaded preflight above should make this impossible.
             return self._fault_after_command(
                 seq,
                 "TARGET",
@@ -532,7 +541,6 @@ class RuntimeCoordinator:
                 now_ms,
             )
 
-        # Normal accepted streaming targets are not individually ACKed.
         return ()
 
     def _stop(self, seq, fields, now_ms):
@@ -602,7 +610,6 @@ class RuntimeCoordinator:
         try:
             self.hardware.force_disabled()
         except HardwareError:
-            # ESTOP remains dominant; enter_fault() records the underlying fault.
             self.state_machine.enter_fault(
                 Fault.HARDWARE,
                 now_ms=now_ms,
@@ -753,12 +760,7 @@ class RuntimeCoordinator:
             ),
         )
 
-    # ------------------------------------------------------------------
-    # Periodic safety update
-    # ------------------------------------------------------------------
-
     def tick(self, now_ms):
-        """Evaluate watchdogs and synchronize PWM release behavior."""
         responses = []
 
         fault = self.state_machine.poll(now_ms)
@@ -775,8 +777,6 @@ class RuntimeCoordinator:
         )
 
         if should_enable and not hardware_enabled:
-            # ARMED/ACTIVE or watchdog-hold state claims PWM authority but the
-            # physical adapter is no longer enabled.
             self.state_machine.enter_fault(
                 Fault.HARDWARE,
                 now_ms=now_ms,
@@ -809,15 +809,10 @@ class RuntimeCoordinator:
         return tuple(responses)
 
     def status_frame(self, now_ms):
-        """Build one current STATUS frame for periodic main-loop telemetry."""
         return self.telemetry.status(
             self.state_machine,
             uptime_ms=now_ms,
         )
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
 
     def _new_session_id(self):
         raw = self.session_factory()
@@ -872,8 +867,6 @@ class RuntimeCoordinator:
                 LINK_TIMEOUT_MS,
             )
 
-        # PROFILE, HARDWARE, INTERNAL, and SELF_TEST require reboot or a future
-        # explicit diagnostic/maintenance path capable of proving resolution.
         return False
 
     def _nack(self, ref_seq, command, error):
