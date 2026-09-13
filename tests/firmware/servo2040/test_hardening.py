@@ -51,12 +51,24 @@ SESSION_INT = 0xA1B2C3D4
 
 def safe_target():
     return (
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
     )
 
 
@@ -69,9 +81,7 @@ def qualified_profile(rate_cd_s=25000):
         joint["servo_min_cd"] = max(joint["servo_min_cd"], -9000)
         joint["servo_max_cd"] = min(joint["servo_max_cd"], 9000)
 
-    return parse_profile_bytes(
-        json.dumps(data, separators=(",", ":")).encode("utf-8")
-    )
+    return parse_profile_bytes(json.dumps(data, separators=(",", ":")).encode("utf-8"))
 
 
 class FakeHardware:
@@ -462,9 +472,7 @@ class MainFailSafeTests(unittest.TestCase):
             def kbd_intr(self, value):
                 calls.append(value)
 
-        firmware_main._enable_maintenance_keyboard_interrupt(
-            FakeMicroPython()
-        )
+        firmware_main._enable_maintenance_keyboard_interrupt(FakeMicroPython())
         self.assertEqual(calls, [3])
 
     def test_build_failure_after_hardware_acquisition_disables_before_reraising(self):

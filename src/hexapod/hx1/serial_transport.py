@@ -35,8 +35,7 @@ def _load_serial_factory() -> SerialFactory:
         import serial
     except ImportError as exc:
         raise HX1SerialDependencyError(
-            "SerialHX1Transport requires the 'pyserial' package "
-            "in the project venv"
+            "SerialHX1Transport requires the 'pyserial' package in the project venv"
         ) from exc
 
     return serial.Serial
@@ -54,21 +53,11 @@ class SerialHX1Transport:
         serial_factory: SerialFactory | None = None,
     ):
         if not isinstance(device_path, str) or not device_path:
-            raise HX1TransportValueError(
-                "device_path must be a non-empty string"
-            )
-        if (
-            isinstance(baudrate, bool)
-            or not isinstance(baudrate, int)
-            or baudrate <= 0
-        ):
-            raise HX1TransportValueError(
-                "baudrate must be a positive integer"
-            )
+            raise HX1TransportValueError("device_path must be a non-empty string")
+        if isinstance(baudrate, bool) or not isinstance(baudrate, int) or baudrate <= 0:
+            raise HX1TransportValueError("baudrate must be a positive integer")
         if isinstance(write_timeout_s, bool):
-            raise HX1TransportValueError(
-                "write_timeout_s must be a finite number > 0"
-            )
+            raise HX1TransportValueError("write_timeout_s must be a finite number > 0")
         try:
             timeout = float(write_timeout_s)
         except (TypeError, ValueError) as exc:
@@ -76,9 +65,7 @@ class SerialHX1Transport:
                 "write_timeout_s must be a finite number > 0"
             ) from exc
         if not 0.0 < timeout < float("inf"):
-            raise HX1TransportValueError(
-                "write_timeout_s must be a finite number > 0"
-            )
+            raise HX1TransportValueError("write_timeout_s must be a finite number > 0")
 
         self.device_path = device_path
         self.baudrate = baudrate
@@ -89,10 +76,7 @@ class SerialHX1Transport:
     @property
     def is_open(self) -> bool:
         serial_port = self._serial
-        return bool(
-            serial_port is not None
-            and getattr(serial_port, "is_open", False)
-        )
+        return bool(serial_port is not None and getattr(serial_port, "is_open", False))
 
     def open(self) -> None:
         if self.is_open:
@@ -118,8 +102,7 @@ class SerialHX1Transport:
         except Exception as exc:
             self._serial = None
             raise HX1TransportError(
-                f"could not open HX1 serial device "
-                f"{self.device_path}: {exc}"
+                f"could not open HX1 serial device {self.device_path}: {exc}"
             ) from exc
 
         if not getattr(serial_port, "is_open", False):
@@ -129,8 +112,7 @@ class SerialHX1Transport:
                 pass
             self._serial = None
             raise HX1TransportError(
-                f"HX1 serial device {self.device_path} "
-                "did not open"
+                f"HX1 serial device {self.device_path} did not open"
             )
 
         self._serial = serial_port
@@ -148,8 +130,7 @@ class SerialHX1Transport:
             serial_port.close()
         except Exception as exc:
             raise HX1TransportError(
-                f"could not close HX1 serial device "
-                f"{self.device_path}: {exc}"
+                f"could not close HX1 serial device {self.device_path}: {exc}"
             ) from exc
 
     def read(self, max_bytes: int = 4096) -> bytes:
@@ -159,9 +140,7 @@ class SerialHX1Transport:
         try:
             waiting = int(serial_port.in_waiting)
         except Exception as exc:
-            raise HX1TransportError(
-                f"could not query HX1 serial input: {exc}"
-            ) from exc
+            raise HX1TransportError(f"could not query HX1 serial input: {exc}") from exc
 
         if waiting <= 0:
             return b""
@@ -171,14 +150,10 @@ class SerialHX1Transport:
         try:
             data = serial_port.read(request)
         except Exception as exc:
-            raise HX1TransportError(
-                f"HX1 serial read failed: {exc}"
-            ) from exc
+            raise HX1TransportError(f"HX1 serial read failed: {exc}") from exc
 
         if not isinstance(data, (bytes, bytearray)):
-            raise HX1TransportError(
-                "HX1 serial read returned non-byte data"
-            )
+            raise HX1TransportError("HX1 serial read returned non-byte data")
 
         result = bytes(data)
         if len(result) > request:
@@ -199,18 +174,14 @@ class SerialHX1Transport:
             try:
                 written = serial_port.write(payload[offset:])
             except Exception as exc:
-                raise HX1TransportError(
-                    f"HX1 serial write failed: {exc}"
-                ) from exc
+                raise HX1TransportError(f"HX1 serial write failed: {exc}") from exc
 
             if (
                 isinstance(written, bool)
                 or not isinstance(written, int)
                 or written <= 0
             ):
-                raise HX1TransportError(
-                    "HX1 serial write made no forward progress"
-                )
+                raise HX1TransportError("HX1 serial write made no forward progress")
 
             remaining = len(payload) - offset
             if written > remaining:
@@ -224,9 +195,7 @@ class SerialHX1Transport:
 
     def _require_open(self) -> Any:
         if not self.is_open:
-            raise HX1TransportClosedError(
-                "HX1 serial transport is not open"
-            )
+            raise HX1TransportClosedError("HX1 serial transport is not open")
         return self._serial
 
 
@@ -237,13 +206,9 @@ def create_serial_hx1_transport(
 ) -> SerialHX1Transport:
     """Construct the physical serial adapter from the HX1 client config."""
     if not isinstance(config, HX1ClientConfig):
-        raise HX1TransportValueError(
-            "config must be an HX1ClientConfig"
-        )
+        raise HX1TransportValueError("config must be an HX1ClientConfig")
     if config.transport_kind != "usb_cdc_serial":
-        raise HX1TransportValueError(
-            "HX1 config transport kind is not usb_cdc_serial"
-        )
+        raise HX1TransportValueError("HX1 config transport kind is not usb_cdc_serial")
 
     return SerialHX1Transport(
         config.device_path,

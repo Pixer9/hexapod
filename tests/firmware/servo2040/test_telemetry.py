@@ -72,16 +72,12 @@ class TelemetryTests(unittest.TestCase):
         self.assertEqual(fields, ("10", "ARM"))
 
     def test_nack_schema(self):
-        _, message_type, fields = parse_frame(
-            self.tx.nack(10, "ARM", "ERR_NOT_READY")
-        )
+        _, message_type, fields = parse_frame(self.tx.nack(10, "ARM", "ERR_NOT_READY"))
         self.assertEqual(message_type, "NACK")
         self.assertEqual(fields, ("10", "ARM", "ERR_NOT_READY"))
 
     def test_event_schema(self):
-        _, message_type, fields = parse_frame(
-            self.tx.event("FAULT", "LINK_TIMEOUT")
-        )
+        _, message_type, fields = parse_frame(self.tx.event("FAULT", "LINK_TIMEOUT"))
         self.assertEqual(message_type, "EVENT")
         self.assertEqual(fields, ("FAULT", "LINK_TIMEOUT"))
 
@@ -106,9 +102,7 @@ class TelemetryTests(unittest.TestCase):
 
     def test_status_before_command_marks_vector_invalid(self):
         runtime = ready_disarmed()
-        _, message_type, fields = parse_frame(
-            self.tx.status(runtime, uptime_ms=100)
-        )
+        _, message_type, fields = parse_frame(self.tx.status(runtime, uptime_ms=100))
 
         self.assertEqual(message_type, "STATUS")
         self.assertEqual(fields[0], SESSION)
@@ -126,9 +120,7 @@ class TelemetryTests(unittest.TestCase):
         self.assertTrue(runtime.stage_target(SESSION, TARGET, 100))
         self.assertTrue(runtime.arm(SESSION, 100))
 
-        _, _, fields = parse_frame(
-            self.tx.status(runtime, uptime_ms=125)
-        )
+        _, _, fields = parse_frame(self.tx.status(runtime, uptime_ms=125))
 
         self.assertEqual(fields[10], "1")
         self.assertEqual(
@@ -141,9 +133,7 @@ class TelemetryTests(unittest.TestCase):
         self.assertTrue(runtime.stage_target(SESSION, TARGET, 100))
         self.assertTrue(runtime.arm(SESSION, 100))
 
-        _, _, fields = parse_frame(
-            self.tx.status(runtime, uptime_ms=125)
-        )
+        _, _, fields = parse_frame(self.tx.status(runtime, uptime_ms=125))
 
         self.assertEqual(tuple(int(v) for v in fields[11:]), TARGET)
 
@@ -155,9 +145,7 @@ class TelemetryTests(unittest.TestCase):
         self.assertTrue(runtime.start(SESSION, 110))
         self.assertTrue(runtime.accept_target(SESSION, 7, TARGET, 120))
 
-        _, _, fields = parse_frame(
-            self.tx.status(runtime, uptime_ms=150)
-        )
+        _, _, fields = parse_frame(self.tx.status(runtime, uptime_ms=150))
 
         self.assertEqual(fields[3], "7")
         self.assertEqual(fields[4], "30")
@@ -166,9 +154,7 @@ class TelemetryTests(unittest.TestCase):
     def test_status_uses_zero_session_when_none_exists(self):
         runtime = RuntimeStateMachine()
 
-        _, _, fields = parse_frame(
-            self.tx.status(runtime, uptime_ms=0)
-        )
+        _, _, fields = parse_frame(self.tx.status(runtime, uptime_ms=0))
 
         self.assertEqual(fields[0], "00000000")
 

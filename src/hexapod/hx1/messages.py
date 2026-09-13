@@ -116,12 +116,7 @@ class HX1UnknownMessage:
 
 
 HX1Inbound: TypeAlias = (
-    HX1Info
-    | HX1Ack
-    | HX1Nack
-    | HX1Event
-    | HX1Status
-    | HX1UnknownMessage
+    HX1Info | HX1Ack | HX1Nack | HX1Event | HX1Status | HX1UnknownMessage
 )
 
 
@@ -178,45 +173,26 @@ def _optional_positive_wire_value(
 
 def _session(text: str, *, allow_zero: bool = True) -> str:
     if len(text) != 8:
-        raise HX1MessageError(
-            "session must contain exactly eight hex digits"
-        )
-    if any(
-        not ("0" <= c <= "9" or "A" <= c <= "F")
-        for c in text
-    ):
-        raise HX1MessageError(
-            "session must be uppercase hexadecimal"
-        )
+        raise HX1MessageError("session must contain exactly eight hex digits")
+    if any(not ("0" <= c <= "9" or "A" <= c <= "F") for c in text):
+        raise HX1MessageError("session must be uppercase hexadecimal")
     if not allow_zero and text == ZERO_SESSION:
         raise HX1MessageError("session must be non-zero")
     return text
 
 
 def _hex32(text: str, name: str) -> int:
-    if len(text) != 8 or any(
-        not ("0" <= c <= "9" or "A" <= c <= "F")
-        for c in text
-    ):
-        raise HX1MessageError(
-            f"{name} must contain eight uppercase hex digits"
-        )
+    if len(text) != 8 or any(not ("0" <= c <= "9" or "A" <= c <= "F") for c in text):
+        raise HX1MessageError(f"{name} must contain eight uppercase hex digits")
     return int(text, 16)
 
 
 def _token(text: str, name: str) -> str:
     if not text:
         raise HX1MessageError(f"{name} must be non-empty")
-    allowed = (
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz"
-        "0123456789"
-        "._-:"
-    )
+    allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-:"
     if any(c not in allowed for c in text):
-        raise HX1MessageError(
-            f"{name} contains an invalid character"
-        )
+        raise HX1MessageError(f"{name} contains an invalid character")
     return text
 
 
@@ -228,9 +204,7 @@ def _joint_vector_cd(
         or not isinstance(values, (tuple, list))
         or len(values) != JOINT_COUNT
     ):
-        raise HX1MessageError(
-            f"joint vector must contain exactly {JOINT_COUNT} values"
-        )
+        raise HX1MessageError(f"joint vector must contain exactly {JOINT_COUNT} values")
 
     out: list[int] = []
     for index, value in enumerate(values):
@@ -249,9 +223,7 @@ def degrees_to_centidegrees(value_deg: object) -> int:
     try:
         value = float(value_deg)
     except (TypeError, ValueError) as exc:
-        raise HX1MessageError(
-            "joint angle must be a finite number"
-        ) from exc
+        raise HX1MessageError("joint angle must be a finite number") from exc
     if not math.isfinite(value):
         raise HX1MessageError("joint angle must be a finite number")
 
@@ -269,13 +241,8 @@ def joint_degrees_to_centidegrees(
         or not isinstance(values_deg, (tuple, list))
         or len(values_deg) != JOINT_COUNT
     ):
-        raise HX1MessageError(
-            f"joint vector must contain exactly {JOINT_COUNT} values"
-        )
-    return tuple(
-        degrees_to_centidegrees(value)
-        for value in values_deg
-    )
+        raise HX1MessageError(f"joint vector must contain exactly {JOINT_COUNT} values")
+    return tuple(degrees_to_centidegrees(value) for value in values_deg)
 
 
 def build_hello(
@@ -307,9 +274,7 @@ def build_heartbeat(
         or host_uptime_ms < 0
         or host_uptime_ms > UINT32_MAX
     ):
-        raise HX1MessageError(
-            "host_uptime_ms must be uint32"
-        )
+        raise HX1MessageError("host_uptime_ms must be uint32")
     return HX1Outbound(
         seq=seq,
         command="HEARTBEAT",
@@ -350,9 +315,7 @@ def build_simple_session_command(
         "CLEAR_FAULT",
         "GET_STATUS",
     }:
-        raise HX1MessageError(
-            f"unsupported simple session command {command!r}"
-        )
+        raise HX1MessageError(f"unsupported simple session command {command!r}")
     _session(session, allow_zero=False)
     return HX1Outbound(
         seq=seq,
@@ -374,9 +337,7 @@ def build_target(
         or period_ms <= 0
         or period_ms > UINT32_MAX
     ):
-        raise HX1MessageError(
-            "period_ms must be a positive uint32 integer"
-        )
+        raise HX1MessageError("period_ms must be a positive uint32 integer")
     joints = _joint_vector_cd(joint_cd)
     return HX1Outbound(
         seq=seq,
@@ -416,9 +377,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
 
     if message_type == "INFO":
         if len(fields) != 11:
-            raise HX1MessageError(
-                "INFO must contain exactly 11 fields"
-            )
+            raise HX1MessageError("INFO must contain exactly 11 fields")
         state = _token(fields[10], "state")
         if state not in VALID_STATES:
             raise HX1MessageError(f"unknown MCU state {state!r}")
@@ -451,9 +410,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
 
     if message_type == "ACK":
         if len(fields) != 2:
-            raise HX1MessageError(
-                "ACK must contain exactly 2 fields"
-            )
+            raise HX1MessageError("ACK must contain exactly 2 fields")
         return HX1Ack(
             seq=frame.seq,
             ref_seq=_uint32(fields[0], "ref_seq"),
@@ -462,9 +419,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
 
     if message_type == "NACK":
         if len(fields) != 3:
-            raise HX1MessageError(
-                "NACK must contain exactly 3 fields"
-            )
+            raise HX1MessageError("NACK must contain exactly 3 fields")
         error = _token(fields[2], "error").upper()
         if error not in VALID_ERRORS:
             # Forward-compatible diagnostic parsing: unknown future NACK
@@ -479,9 +434,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
 
     if message_type == "EVENT":
         if len(fields) != 2:
-            raise HX1MessageError(
-                "EVENT must contain exactly 2 fields"
-            )
+            raise HX1MessageError("EVENT must contain exactly 2 fields")
         return HX1Event(
             seq=frame.seq,
             event_type=_token(
@@ -494,8 +447,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
     if message_type == "STATUS":
         if len(fields) != 11 + JOINT_COUNT:
             raise HX1MessageError(
-                f"STATUS must contain exactly "
-                f"{11 + JOINT_COUNT} fields"
+                f"STATUS must contain exactly {11 + JOINT_COUNT} fields"
             )
 
         state = _token(fields[1], "state")
@@ -513,18 +465,14 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
         elif 0 <= last_target_raw <= UINT32_MAX:
             last_target_seq = last_target_raw
         else:
-            raise HX1MessageError(
-                "last_target_seq must be -1 or uint32"
-            )
+            raise HX1MessageError("last_target_seq must be -1 or uint32")
 
         command_valid_raw = _signed_int(
             fields[10],
             "command_valid",
         )
         if command_valid_raw not in (0, 1):
-            raise HX1MessageError(
-                "command_valid must be 0 or 1"
-            )
+            raise HX1MessageError("command_valid must be 0 or 1")
 
         joints = tuple(
             _signed_int(
@@ -559,9 +507,7 @@ def parse_inbound(frame: HX1Frame) -> HX1Inbound:
                 "uptime_ms",
             ),
             command_valid=bool(command_valid_raw),
-            commanded_joint_cd=(
-                joints if command_valid_raw == 1 else None
-            ),
+            commanded_joint_cd=(joints if command_valid_raw == 1 else None),
         )
 
     return HX1UnknownMessage(

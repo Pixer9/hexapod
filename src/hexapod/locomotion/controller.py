@@ -46,21 +46,15 @@ class LocomotionFrame:
 
 def _finite_nonnegative(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise LocomotionControllerError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise LocomotionControllerError(f"{name} must be a finite number >= 0")
 
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise LocomotionControllerError(
-            f"{name} must be a finite number >= 0"
-        ) from exc
+        raise LocomotionControllerError(f"{name} must be a finite number >= 0") from exc
 
     if not math.isfinite(result) or result < 0.0:
-        raise LocomotionControllerError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise LocomotionControllerError(f"{name} must be a finite number >= 0")
 
     return result
 
@@ -127,9 +121,7 @@ class LocomotionController:
         identical outputs independent of wall-clock scheduling.
         """
         if not isinstance(command, MotionCommand):
-            raise LocomotionControllerError(
-                "command must be a MotionCommand"
-            )
+            raise LocomotionControllerError("command must be a MotionCommand")
 
         dt = _finite_nonnegative(dt_s, "dt_s")
         wants_motion = not command.is_zero
@@ -137,10 +129,7 @@ class LocomotionController:
         self._apply_intent(command, wants_motion)
 
         if self._mode is not LocomotionMode.IDLE:
-            self._phase = (
-                self._phase
-                + dt * self.gait.config.cycle_hz
-            ) % 1.0
+            self._phase = (self._phase + dt * self.gait.config.cycle_hz) % 1.0
 
         self._advance_envelope(dt)
 

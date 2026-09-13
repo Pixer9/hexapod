@@ -92,14 +92,10 @@ def _validate_message_type(message_type: object) -> str:
     if not isinstance(message_type, str) or not message_type:
         raise ValueError("message type must be a non-empty string")
     if len(message_type) > MAX_MESSAGE_TYPE_CHARS:
-        raise ValueError(
-            f"message type exceeds {MAX_MESSAGE_TYPE_CHARS} characters"
-        )
+        raise ValueError(f"message type exceeds {MAX_MESSAGE_TYPE_CHARS} characters")
     for char in message_type:
         if not ("A" <= char <= "Z" or "0" <= char <= "9" or char == "_"):
-            raise ValueError(
-                "message type must be an uppercase ASCII identifier"
-            )
+            raise ValueError("message type must be an uppercase ASCII identifier")
     return message_type
 
 
@@ -143,9 +139,7 @@ def encode_frame(
     frame = body + f"|{crc:04X}\n".encode("ascii")
 
     if len(frame) > MAX_FRAME_BYTES:
-        raise HX1FrameTooLongError(
-            "encoded frame exceeds maximum frame size"
-        )
+        raise HX1FrameTooLongError("encoded frame exceeds maximum frame size")
     return frame
 
 
@@ -159,9 +153,7 @@ def parse_frame(raw: bytes | bytearray | str) -> HX1Frame:
     elif isinstance(raw, (bytes, bytearray)):
         raw_bytes = bytes(raw)
     else:
-        raise HX1FrameFormatError(
-            "frame must be bytes, bytearray, or str"
-        )
+        raise HX1FrameFormatError("frame must be bytes, bytearray, or str")
 
     if len(raw_bytes) > MAX_FRAME_BYTES:
         raise HX1FrameTooLongError("frame exceeds maximum frame size")
@@ -172,9 +164,7 @@ def parse_frame(raw: bytes | bytearray | str) -> HX1Frame:
             raw_bytes = raw_bytes[:-1]
 
     if b"\n" in raw_bytes or b"\r" in raw_bytes:
-        raise HX1FrameFormatError(
-            "frame contains an unexpected line break"
-        )
+        raise HX1FrameFormatError("frame contains an unexpected line break")
     if not raw_bytes:
         raise HX1FrameFormatError("empty frame")
 
@@ -191,14 +181,10 @@ def parse_frame(raw: bytes | bytearray | str) -> HX1Frame:
 
     seq_text = parts[1]
     if not seq_text or not seq_text.isdigit():
-        raise HX1FrameFormatError(
-            "sequence number is not unsigned decimal"
-        )
+        raise HX1FrameFormatError("sequence number is not unsigned decimal")
     seq = int(seq_text)
     if seq > UINT32_MAX:
-        raise HX1FrameFormatError(
-            "sequence number is outside uint32 range"
-        )
+        raise HX1FrameFormatError("sequence number is outside uint32 range")
 
     message_type = parts[2]
     try:
@@ -208,27 +194,16 @@ def parse_frame(raw: bytes | bytearray | str) -> HX1Frame:
 
     crc_text = parts[-1]
     if len(crc_text) != 4:
-        raise HX1FrameFormatError(
-            "CRC must contain exactly four hexadecimal digits"
-        )
-    if any(
-        not ("0" <= char <= "9" or "A" <= char <= "F")
-        for char in crc_text
-    ):
-        raise HX1FrameFormatError(
-            "CRC must be uppercase hexadecimal"
-        )
+        raise HX1FrameFormatError("CRC must contain exactly four hexadecimal digits")
+    if any(not ("0" <= char <= "9" or "A" <= char <= "F") for char in crc_text):
+        raise HX1FrameFormatError("CRC must be uppercase hexadecimal")
 
     fields = tuple(parts[3:-1])
     for field in fields:
         if not field:
-            raise HX1FrameFormatError(
-                "protocol fields must not be empty"
-            )
+            raise HX1FrameFormatError("protocol fields must not be empty")
         if field != field.strip():
-            raise HX1FrameFormatError(
-                "protocol fields contain surrounding whitespace"
-            )
+            raise HX1FrameFormatError("protocol fields contain surrounding whitespace")
 
     body = "|".join(parts[:-1]).encode("ascii")
     expected_crc = crc16_ccitt_false(body)
@@ -271,9 +246,7 @@ class HX1LineFramer:
 
     def feed(self, data: bytes | bytearray) -> tuple[bytes, ...]:
         if not isinstance(data, (bytes, bytearray)):
-            raise TypeError(
-                "HX1LineFramer.feed expects bytes or bytearray"
-            )
+            raise TypeError("HX1LineFramer.feed expects bytes or bytearray")
 
         frames: list[bytes] = []
 

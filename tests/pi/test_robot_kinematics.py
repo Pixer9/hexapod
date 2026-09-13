@@ -38,9 +38,7 @@ class WholeBodyKinematicsTests(unittest.TestCase):
         self.assertEqual(tuple(targets), CANONICAL_LEG_ORDER)
 
     def test_reference_stance_solves_same_local_angles_for_all_legs(self):
-        solution = self.kinematics.solve(
-            self.kinematics.reference_stance_body()
-        )
+        solution = self.kinematics.solve(self.kinematics.reference_stance_body())
 
         expected = leg_ik(
             *self.geometry.neutral_foot_leg_mm,
@@ -63,9 +61,7 @@ class WholeBodyKinematicsTests(unittest.TestCase):
                 )
 
     def test_reference_solution_is_18_values_in_canonical_triplets(self):
-        solution = self.kinematics.solve(
-            self.kinematics.reference_stance_body()
-        )
+        solution = self.kinematics.solve(self.kinematics.reference_stance_body())
         expected = leg_ik(
             *self.geometry.neutral_foot_leg_mm,
             self.geometry.links,

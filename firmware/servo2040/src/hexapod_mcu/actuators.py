@@ -109,10 +109,7 @@ def validate_position_target(profile, target):
     values = _validate_vector(profile, target)
 
     for joint, requested_cd in zip(profile.joints, values):
-        if (
-            requested_cd < joint.logical_min_cd
-            or requested_cd > joint.logical_max_cd
-        ):
+        if requested_cd < joint.logical_min_cd or requested_cd > joint.logical_max_cd:
             raise PositionLimitError(
                 index=joint.index,
                 name=joint.name,
@@ -202,8 +199,7 @@ def validate_rate_transition(profile, previous_target, requested_target, dt_ms):
     for joint in profile.joints:
         if joint.max_rate_cd_s is None:
             raise UnqualifiedRateError(
-                "%s[%d]: max_rate_cd_s is not qualified"
-                % (joint.name, joint.index)
+                "%s[%d]: max_rate_cd_s is not qualified" % (joint.name, joint.index)
             )
 
     for joint, old_cd, new_cd in zip(profile.joints, previous, requested):

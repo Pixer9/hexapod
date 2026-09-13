@@ -42,12 +42,24 @@ SESSION = "A1B2C3D4"
 
 def safe_target():
     return (
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
     )
 
 
@@ -203,9 +215,7 @@ def start(runtime, seq=5, now_ms=50):
 
 
 def ready_active(rate_cd_s=25000):
-    runtime, sm, hw = make_runtime(
-        qualified_profile(rate_cd_s)
-    )
+    runtime, sm, hw = make_runtime(qualified_profile(rate_cd_s))
     hello(runtime)
     stage(runtime)
     heartbeat(runtime)

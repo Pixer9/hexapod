@@ -73,18 +73,22 @@ class UnavailableHardware:
 
     def force_disabled(self):
         from hexapod_mcu.hardware import HardwareError
+
         raise HardwareError(self.reason)
 
     def require_profile_compatible(self, profile):
         from hexapod_mcu.hardware import HardwareError
+
         raise HardwareError(self.reason)
 
     def enable_at_target(self, target):
         from hexapod_mcu.hardware import HardwareError
+
         raise HardwareError(self.reason)
 
     def apply_target(self, target):
         from hexapod_mcu.hardware import HardwareError
+
         raise HardwareError(self.reason)
 
 
@@ -102,6 +106,7 @@ class InvalidProfile:
 
     def require_arm_qualified(self):
         from hexapod_mcu.profile import ProfileQualificationError
+
         raise ProfileQualificationError("actuator profile failed to load")
 
 
@@ -180,8 +185,7 @@ class FirmwareApp:
             return True
 
         return (
-            self.clock.ticks_diff(now_ms, self.last_status_ms)
-            >= self.status_period_ms
+            self.clock.ticks_diff(now_ms, self.last_status_ms) >= self.status_period_ms
         )
 
     def _send_frames(self, frames):
@@ -202,6 +206,7 @@ class FirmwareApp:
 
         try:
             from hexapod_mcu.state_machine import Fault
+
             self.runtime.state_machine.enter_fault(
                 Fault.INTERNAL,
                 now_ms=now_ms,

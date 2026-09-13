@@ -35,8 +35,7 @@ class HashTests(unittest.TestCase):
     def test_sha256_standard_vector(self):
         self.assertEqual(
             sha256_hex(b"abc"),
-            "BA7816BF8F01CFEA414140DE5DAE2223"
-            "B00361A396177A9CB410FF61F20015AD",
+            "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD",
         )
 
     def test_hash_is_exact_byte_sensitive(self):
@@ -115,8 +114,7 @@ class CurrentProfileTests(unittest.TestCase):
         )
 
         actual = tuple(
-            (joint.logical_min_cd, joint.logical_max_cd)
-            for joint in profile.joints
+            (joint.logical_min_cd, joint.logical_max_cd) for joint in profile.joints
         )
         self.assertEqual(actual, expected)
 
@@ -130,7 +128,6 @@ class CurrentProfileTests(unittest.TestCase):
 
 
 class QualificationTests(unittest.TestCase):
-
     def test_profile_becomes_unqualified_when_any_rate_is_missing(self):
         data = load_raw_dict()
         data["joints"][0]["max_rate_cd_s"] = None

@@ -46,9 +46,7 @@ def _positive_int(value: object, name: str) -> int:
 
 def _nonnegative_int(value: object, name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise HX1ConfigError(
-            f"{name} must be a non-negative integer"
-        )
+        raise HX1ConfigError(f"{name} must be a non-negative integer")
     return value
 
 
@@ -58,9 +56,7 @@ def _positive_float(value: object, name: str) -> float:
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise HX1ConfigError(
-            f"{name} must be a finite number > 0"
-        ) from exc
+        raise HX1ConfigError(f"{name} must be a finite number > 0") from exc
     if not math.isfinite(result) or result <= 0.0:
         raise HX1ConfigError(f"{name} must be a finite number > 0")
     return result
@@ -74,24 +70,15 @@ def _require_exact_keys(
     missing = expected - set(data)
     extra = set(data) - expected
     if missing:
-        raise HX1ConfigError(
-            f"{name} missing keys: " + ", ".join(sorted(missing))
-        )
+        raise HX1ConfigError(f"{name} missing keys: " + ", ".join(sorted(missing)))
     if extra:
-        raise HX1ConfigError(
-            f"{name} unsupported keys: " + ", ".join(sorted(extra))
-        )
+        raise HX1ConfigError(f"{name} unsupported keys: " + ", ".join(sorted(extra)))
 
 
 def _sha256_text(value: object, name: str) -> str:
     text = _nonempty_string(value, name)
-    if len(text) != 64 or any(
-        not ("0" <= c <= "9" or "A" <= c <= "F")
-        for c in text
-    ):
-        raise HX1ConfigError(
-            f"{name} must contain exactly 64 uppercase hex digits"
-        )
+    if len(text) != 64 or any(not ("0" <= c <= "9" or "A" <= c <= "F") for c in text):
+        raise HX1ConfigError(f"{name} must contain exactly 64 uppercase hex digits")
     return text
 
 
@@ -123,9 +110,7 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
     if not isinstance(protocol, dict):
         raise HX1ConfigError("protocol must be an object")
     if not isinstance(expected_profile, dict):
-        raise HX1ConfigError(
-            "expected_profile must be an object"
-        )
+        raise HX1ConfigError("expected_profile must be an object")
 
     _require_exact_keys(
         transport,
@@ -159,27 +144,21 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
         "transport.kind",
     )
     if transport_kind != "usb_cdc_serial":
-        raise HX1ConfigError(
-            "transport.kind must be 'usb_cdc_serial'"
-        )
+        raise HX1ConfigError("transport.kind must be 'usb_cdc_serial'")
 
     client_minor = _nonnegative_int(
         protocol["client_minor"],
         "protocol.client_minor",
     )
     if client_minor != PROTOCOL_MINOR:
-        raise HX1ConfigError(
-            f"protocol.client_minor must be {PROTOCOL_MINOR}"
-        )
+        raise HX1ConfigError(f"protocol.client_minor must be {PROTOCOL_MINOR}")
 
     required_server_minor = _nonnegative_int(
         protocol["required_server_minor"],
         "protocol.required_server_minor",
     )
     if required_server_minor > client_minor:
-        raise HX1ConfigError(
-            "required_server_minor must not exceed client_minor"
-        )
+        raise HX1ConfigError("required_server_minor must not exceed client_minor")
 
     joint_count = _positive_int(
         protocol["joint_count"],
@@ -200,13 +179,9 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
     # Contract sanity. Keep normal Pi cadence well inside accepted MCU
     # watchdogs without making the Pi transport the safety authority.
     if heartbeat_period_ms >= 750:
-        raise HX1ConfigError(
-            "heartbeat period must be below the 750 ms link timeout"
-        )
+        raise HX1ConfigError("heartbeat period must be below the 750 ms link timeout")
     if target_period_ms >= 200:
-        raise HX1ConfigError(
-            "target period must be below the 200 ms motion timeout"
-        )
+        raise HX1ConfigError("target period must be below the 200 ms motion timeout")
 
     return HX1ClientConfig(
         schema_version=1,
@@ -254,9 +229,7 @@ def load_hx1_client_config(
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise HX1ConfigError(
-            f"could not read HX1 client config {path}: {exc}"
-        ) from exc
+        raise HX1ConfigError(f"could not read HX1 client config {path}: {exc}") from exc
 
     try:
         data = json.loads(text)

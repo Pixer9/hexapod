@@ -76,8 +76,7 @@ def parse_robot_geometry(data: object) -> RobotGeometry:
     leg_order = tuple(leg_order_raw)
     if leg_order != CANONICAL_LEG_ORDER:
         raise GeometryConfigError(
-            "leg_order must exactly match canonical order %r"
-            % (CANONICAL_LEG_ORDER,)
+            "leg_order must exactly match canonical order %r" % (CANONICAL_LEG_ORDER,)
         )
 
     links = _require_dict(root.get("links_mm"), "links_mm")

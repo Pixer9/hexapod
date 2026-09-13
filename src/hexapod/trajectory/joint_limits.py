@@ -20,9 +20,7 @@ from hexapod.model import CANONICAL_LEG_ORDER
 
 JOINTS_PER_LEG: tuple[str, ...] = ("coxa", "femur", "tibia")
 CANONICAL_JOINT_NAMES: tuple[str, ...] = tuple(
-    f"{leg.lower()}_{joint}"
-    for leg in CANONICAL_LEG_ORDER
-    for joint in JOINTS_PER_LEG
+    f"{leg.lower()}_{joint}" for leg in CANONICAL_LEG_ORDER for joint in JOINTS_PER_LEG
 )
 LOGICAL_JOINT_COUNT = len(CANONICAL_JOINT_NAMES)
 
@@ -99,19 +97,13 @@ class JointSoftLimitProfile:
 
 def _finite(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise JointSoftLimitConfigError(
-            f"{name} must be a finite number"
-        )
+        raise JointSoftLimitConfigError(f"{name} must be a finite number")
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise JointSoftLimitConfigError(
-            f"{name} must be a finite number"
-        ) from exc
+        raise JointSoftLimitConfigError(f"{name} must be a finite number") from exc
     if not math.isfinite(result):
-        raise JointSoftLimitConfigError(
-            f"{name} must be a finite number"
-        )
+        raise JointSoftLimitConfigError(f"{name} must be a finite number")
     return result
 
 
@@ -124,8 +116,7 @@ def _normalize_vector(
         or len(vector_deg) != LOGICAL_JOINT_COUNT
     ):
         raise JointVectorError(
-            f"joint vector must contain exactly "
-            f"{LOGICAL_JOINT_COUNT} values"
+            f"joint vector must contain exactly {LOGICAL_JOINT_COUNT} values"
         )
 
     result: list[float] = []
@@ -165,8 +156,7 @@ def parse_joint_soft_limit_profile(
     extra = set(data) - expected_root
     if extra:
         raise JointSoftLimitConfigError(
-            "unsupported soft-limit profile keys: "
-            + ", ".join(sorted(extra))
+            "unsupported soft-limit profile keys: " + ", ".join(sorted(extra))
         )
 
     if data.get("schema_version") != 1:
@@ -175,21 +165,13 @@ def parse_joint_soft_limit_profile(
     profile_id = data.get("profile_id")
     robot_id = data.get("robot_id")
     if not isinstance(profile_id, str) or not profile_id:
-        raise JointSoftLimitConfigError(
-            "profile_id must be a non-empty string"
-        )
+        raise JointSoftLimitConfigError("profile_id must be a non-empty string")
     if not isinstance(robot_id, str) or not robot_id:
-        raise JointSoftLimitConfigError(
-            "robot_id must be a non-empty string"
-        )
+        raise JointSoftLimitConfigError("robot_id must be a non-empty string")
     if data.get("angle_unit") != "degree":
-        raise JointSoftLimitConfigError(
-            "angle_unit must be 'degree'"
-        )
+        raise JointSoftLimitConfigError("angle_unit must be 'degree'")
     if data.get("joint_count") != LOGICAL_JOINT_COUNT:
-        raise JointSoftLimitConfigError(
-            f"joint_count must be {LOGICAL_JOINT_COUNT}"
-        )
+        raise JointSoftLimitConfigError(f"joint_count must be {LOGICAL_JOINT_COUNT}")
 
     joints_raw = data.get("joints")
     if not isinstance(joints_raw, list):
@@ -216,15 +198,13 @@ def parse_joint_soft_limit_profile(
 
         if item.get("index") != expected_index:
             raise JointSoftLimitConfigError(
-                f"joints[{expected_index}].index must be "
-                f"{expected_index}"
+                f"joints[{expected_index}].index must be {expected_index}"
             )
 
         expected_name = CANONICAL_JOINT_NAMES[expected_index]
         if item.get("name") != expected_name:
             raise JointSoftLimitConfigError(
-                f"joints[{expected_index}].name must be "
-                f"{expected_name!r}"
+                f"joints[{expected_index}].name must be {expected_name!r}"
             )
 
         minimum = _finite(

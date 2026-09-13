@@ -104,14 +104,10 @@ def leg_fk(angles: JointAngles, links: LinkLengths) -> Vec3:
     tf = math.radians(float(angles.femur_deg))
     tk = math.radians(float(angles.tibia_deg))
 
-    radial_after_coxa = (
-        links.femur_mm * math.cos(tf)
-        + links.tibia_mm * math.cos(tf - tk)
+    radial_after_coxa = links.femur_mm * math.cos(tf) + links.tibia_mm * math.cos(
+        tf - tk
     )
-    z = (
-        links.femur_mm * math.sin(tf)
-        + links.tibia_mm * math.sin(tf - tk)
-    )
+    z = links.femur_mm * math.sin(tf) + links.tibia_mm * math.sin(tf - tk)
 
     radial_total = links.coxa_mm + radial_after_coxa
     x = radial_total * math.cos(tc)

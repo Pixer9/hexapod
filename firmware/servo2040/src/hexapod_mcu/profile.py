@@ -48,12 +48,7 @@ CANONICAL_JOINT_NAMES = (
     "lb_tibia",
 )
 
-_ALLOWED_ID_CHARS = (
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "._-:"
-)
+_ALLOWED_ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-:"
 
 
 class ProfileError(ValueError):
@@ -199,9 +194,7 @@ def parse_profile_bytes(raw):
 
     joint_count = _require_int(data, "joint_count", minimum=1)
     if joint_count != JOINT_COUNT:
-        raise ProfileError(
-            "joint_count must be %d for this firmware" % JOINT_COUNT
-        )
+        raise ProfileError("joint_count must be %d for this firmware" % JOINT_COUNT)
 
     angle_unit = _require_string(data, "angle_unit")
     if angle_unit != ANGLE_UNIT:
@@ -255,25 +248,18 @@ def parse_profile_bytes(raw):
 
         direction = _require_int(raw_joint, "direction")
         if direction not in (-1, 1):
-            raise ProfileError(
-                "%s: direction must be exactly -1 or +1" % name
-            )
+            raise ProfileError("%s: direction must be exactly -1 or +1" % name)
 
         offset_cd = _require_int(raw_joint, "offset_cd")
         servo_min_cd = _require_int(raw_joint, "servo_min_cd")
         servo_max_cd = _require_int(raw_joint, "servo_max_cd")
 
         if servo_min_cd >= servo_max_cd:
-            raise ProfileError(
-                "%s: servo_min_cd must be less than servo_max_cd" % name
-            )
+            raise ProfileError("%s: servo_min_cd must be less than servo_max_cd" % name)
 
         max_rate_cd_s = raw_joint.get("max_rate_cd_s")
         if max_rate_cd_s is not None:
-            if (
-                isinstance(max_rate_cd_s, bool)
-                or not isinstance(max_rate_cd_s, int)
-            ):
+            if isinstance(max_rate_cd_s, bool) or not isinstance(max_rate_cd_s, int):
                 raise ProfileError(
                     "%s: max_rate_cd_s must be an integer or null" % name
                 )

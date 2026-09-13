@@ -72,9 +72,7 @@ class ServoOutputHardware:
             return tuple(errors)
 
         for joint in profile.joints:
-            backend_min_cd, backend_max_cd = self.backend_value_range_cd(
-                joint.channel
-            )
+            backend_min_cd, backend_max_cd = self.backend_value_range_cd(joint.channel)
 
             if joint.servo_min_cd < backend_min_cd:
                 errors.append(
@@ -131,9 +129,7 @@ class ServoOutputHardware:
         ``load=False`` and commit once.
         """
         if self._enabled is not False:
-            raise HardwareStateError(
-                "outputs must be known-disabled before enabling"
-            )
+            raise HardwareStateError("outputs must be known-disabled before enabling")
 
         target = self._normalize_channel_target(channel_target_cd)
         self._commit_target(target)
@@ -235,9 +231,7 @@ class DisableOnlyHardware:
             self._cluster.disable_all(load=True)
         except Exception as exc:
             self._enabled = None
-            raise HardwareError(
-                "failed to disable retained ServoCluster: %s" % exc
-            )
+            raise HardwareError("failed to disable retained ServoCluster: %s" % exc)
 
         self._enabled = False
 
@@ -260,9 +254,7 @@ def create_servo2040_hardware():
     try:
         from servo import ServoCluster, servo2040
     except Exception as exc:
-        raise HardwareError(
-            "Pimoroni ServoCluster runtime is unavailable: %s" % exc
-        )
+        raise HardwareError("Pimoroni ServoCluster runtime is unavailable: %s" % exc)
 
     pins = list(range(servo2040.SERVO_1, servo2040.SERVO_18 + 1))
 

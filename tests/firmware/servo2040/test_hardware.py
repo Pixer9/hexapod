@@ -84,12 +84,24 @@ def safe_channel_target():
     # Physical channel order for the known-valid logical pose used by the
     # actuator-core tests: coxa=0, femur=0, tibia=10 degrees.
     return (
-        600, 4500, -3200,
-        800, 4000, -2500,
-        700, 4000, -2500,
-        600, 3100, -2900,
-        -400, 3700, -1900,
-        900, 4800, -3000,
+        600,
+        4500,
+        -3200,
+        800,
+        4000,
+        -2500,
+        700,
+        4000,
+        -2500,
+        600,
+        3100,
+        -2900,
+        -400,
+        3700,
+        -1900,
+        900,
+        4800,
+        -3000,
     )
 
 
@@ -110,9 +122,7 @@ class CompatibilityTests(unittest.TestCase):
 
     def test_current_profile_is_backend_compatible(self):
         hardware = ServoOutputHardware(FakeServoCluster())
-        self.assertTrue(
-            hardware.require_profile_compatible(load_profile_view())
-        )
+        self.assertTrue(hardware.require_profile_compatible(load_profile_view()))
 
     def test_out_of_backend_profile_is_rejected(self):
         hardware = ServoOutputHardware(FakeServoCluster())

@@ -14,9 +14,7 @@ class LocomotionControllerConfigError(ValueError):
 
 def _finite_float(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise LocomotionControllerConfigError(
-            f"{name} must be a finite number"
-        )
+        raise LocomotionControllerConfigError(f"{name} must be a finite number")
 
     try:
         result = float(value)
@@ -26,18 +24,14 @@ def _finite_float(value: object, name: str) -> float:
         ) from exc
 
     if not math.isfinite(result):
-        raise LocomotionControllerConfigError(
-            f"{name} must be a finite number"
-        )
+        raise LocomotionControllerConfigError(f"{name} must be a finite number")
 
     return result
 
 
 def _nonempty_string(value: object, name: str) -> str:
     if not isinstance(value, str) or not value:
-        raise LocomotionControllerConfigError(
-            f"{name} must be a non-empty string"
-        )
+        raise LocomotionControllerConfigError(f"{name} must be a non-empty string")
     return value
 
 
@@ -56,9 +50,7 @@ def parse_locomotion_controller_config(
         raise LocomotionControllerConfigError("root must be an object")
 
     if data.get("schema_version") != 1:
-        raise LocomotionControllerConfigError(
-            "schema_version must be 1"
-        )
+        raise LocomotionControllerConfigError("schema_version must be 1")
 
     controller_id = _nonempty_string(
         data.get("controller_id"),
@@ -74,13 +66,9 @@ def parse_locomotion_controller_config(
     )
 
     if start_blend_s < 0.0:
-        raise LocomotionControllerConfigError(
-            "start_blend_s must be >= 0"
-        )
+        raise LocomotionControllerConfigError("start_blend_s must be >= 0")
     if stop_blend_s < 0.0:
-        raise LocomotionControllerConfigError(
-            "stop_blend_s must be >= 0"
-        )
+        raise LocomotionControllerConfigError("stop_blend_s must be >= 0")
 
     expected = {
         "schema_version",
@@ -91,8 +79,7 @@ def parse_locomotion_controller_config(
     extra = set(data) - expected
     if extra:
         raise LocomotionControllerConfigError(
-            "unsupported locomotion controller config keys: "
-            + ", ".join(sorted(extra))
+            "unsupported locomotion controller config keys: " + ", ".join(sorted(extra))
         )
 
     return LocomotionControllerConfig(

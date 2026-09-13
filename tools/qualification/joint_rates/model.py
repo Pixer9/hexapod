@@ -74,7 +74,9 @@ def rotz_deg(x: float, y: float, deg: float) -> tuple[float, float]:
     return (c * x - s * y, s * x + c * y)
 
 
-def leg_to_body_frame(point: tuple[float, float, float], leg: str) -> tuple[float, float, float]:
+def leg_to_body_frame(
+    point: tuple[float, float, float], leg: str
+) -> tuple[float, float, float]:
     """Convert a point from a leg-local frame to the body frame."""
     x, y, z = point
     yaw = math.radians(LEG_YAW_DEG[leg])
@@ -86,7 +88,9 @@ def leg_to_body_frame(point: tuple[float, float, float], leg: str) -> tuple[floa
     return (xr + lx, yr + ly, z + lz)
 
 
-def body_to_leg_frame(point: tuple[float, float, float], leg: str) -> tuple[float, float, float]:
+def body_to_leg_frame(
+    point: tuple[float, float, float], leg: str
+) -> tuple[float, float, float]:
     """Convert a point from the body frame to a leg-local frame."""
     x, y, z = point
     lx, ly, lz = LEG_POS_BODY_MM[leg]

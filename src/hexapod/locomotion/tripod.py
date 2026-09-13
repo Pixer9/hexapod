@@ -24,7 +24,13 @@ from types import MappingProxyType
 from typing import Mapping
 
 from hexapod.control import MotionCommand
-from hexapod.model import CANONICAL_LEG_ORDER, RobotGeometry, Vec3, build_leg_transforms, leg_to_body
+from hexapod.model import (
+    CANONICAL_LEG_ORDER,
+    RobotGeometry,
+    Vec3,
+    build_leg_transforms,
+    leg_to_body,
+)
 
 from .config import TripodGaitConfig
 
@@ -98,7 +104,7 @@ def _smootherstep(u: float) -> float:
 def _swing_lift(u: float) -> float:
     """C2 endpoint-flat 0..1..0 lift profile with unit midpoint peak."""
     u = max(0.0, min(1.0, float(u)))
-    return 64.0 * (u ** 3) * ((1.0 - u) ** 3)
+    return 64.0 * (u**3) * ((1.0 - u) ** 3)
 
 
 def tripod_phase_for_leg(global_phase: float, leg_name: str) -> float:
@@ -151,10 +157,7 @@ class TripodGait:
             blend_value = 0.0
 
         raw_half_sweeps = self._raw_half_sweeps(command)
-        max_raw = max(
-            math.hypot(dx, dy)
-            for dx, dy in raw_half_sweeps.values()
-        )
+        max_raw = max(math.hypot(dx, dy) for dx, dy in raw_half_sweeps.values())
         if max_raw <= self.config.max_foot_offset_mm or max_raw == 0.0:
             command_scale = 1.0
         else:
@@ -170,9 +173,8 @@ class TripodGait:
             if in_stance:
                 progress = local_phase / self.config.duty_factor
             else:
-                progress = (
-                    (local_phase - self.config.duty_factor)
-                    / (1.0 - self.config.duty_factor)
+                progress = (local_phase - self.config.duty_factor) / (
+                    1.0 - self.config.duty_factor
                 )
 
             progress = max(0.0, min(1.0, progress))
@@ -191,11 +193,7 @@ class TripodGait:
                 # Return from rear to front while lifted.
                 offset_x = half_dx * (-1.0 + 2.0 * s)
                 offset_y = half_dy * (-1.0 + 2.0 * s)
-                lift = (
-                    self.config.step_height_mm
-                    * blend_value
-                    * _swing_lift(progress)
-                )
+                lift = self.config.step_height_mm * blend_value * _swing_lift(progress)
 
             anchor_x, anchor_y, anchor_z = self._anchors[leg_name]
             targets[leg_name] = (

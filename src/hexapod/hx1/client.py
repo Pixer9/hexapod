@@ -174,11 +174,7 @@ class HX1ClientCore:
 
         HX1 explicitly permits a zero session for ESTOP.
         """
-        session = (
-            self._session
-            if self._session is not None
-            else ZERO_SESSION
-        )
+        session = self._session if self._session is not None else ZERO_SESSION
         return build_estop(
             self._sequence.take(),
             session,
@@ -213,17 +209,13 @@ class HX1ClientCore:
 
     def _require_session(self) -> str:
         if self._session is None:
-            raise HX1SessionError(
-                "HX1 command requires a negotiated session"
-            )
+            raise HX1SessionError("HX1 command requires a negotiated session")
         return self._session
 
     def _accept_info(self, info: HX1Info) -> None:
         pending = self._pending_hello_seq
         if pending is None:
-            raise HX1UnexpectedResponseError(
-                "received INFO without a pending HELLO"
-            )
+            raise HX1UnexpectedResponseError("received INFO without a pending HELLO")
         if info.ref_seq != pending:
             raise HX1UnexpectedResponseError(
                 "INFO REF_SEQ does not match pending HELLO"
@@ -240,32 +232,22 @@ class HX1ClientCore:
 
         if info.profile_id != self.config.expected_profile_id:
             mismatches.append(
-                "profile id "
-                f"{info.profile_id!r} != "
-                f"{self.config.expected_profile_id!r}"
+                f"profile id {info.profile_id!r} != {self.config.expected_profile_id!r}"
             )
 
-        if (
-            info.profile_revision
-            != self.config.expected_profile_revision
-        ):
+        if info.profile_revision != self.config.expected_profile_revision:
             mismatches.append(
                 "profile revision "
                 f"{info.profile_revision} != "
                 f"{self.config.expected_profile_revision}"
             )
 
-        if (
-            info.profile_hash
-            != self.config.expected_profile_sha256
-        ):
+        if info.profile_hash != self.config.expected_profile_sha256:
             mismatches.append("profile SHA-256 mismatch")
 
         if info.joint_count != self.config.joint_count:
             mismatches.append(
-                "joint count "
-                f"{info.joint_count} != "
-                f"{self.config.joint_count}"
+                f"joint count {info.joint_count} != {self.config.joint_count}"
             )
 
         if mismatches:

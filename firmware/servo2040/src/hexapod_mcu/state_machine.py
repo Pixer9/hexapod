@@ -227,9 +227,8 @@ class RuntimeStateMachine:
         return OK
 
     def stage_is_fresh(self, now_ms):
-        return (
-            self.staged_target is not None
-            and is_fresh(now_ms, self.staged_at_ms, ARM_STAGE_MAX_AGE_MS)
+        return self.staged_target is not None and is_fresh(
+            now_ms, self.staged_at_ms, ARM_STAGE_MAX_AGE_MS
         )
 
     def arm(self, session_id, now_ms):
@@ -361,9 +360,7 @@ class RuntimeStateMachine:
         self.state = State.FAULT
         self.fault_entered_at_ms = now_ms
         self.fault_hold_pwm = bool(
-            hold_pwm
-            and was_energized
-            and self.commanded_target is not None
+            hold_pwm and was_energized and self.commanded_target is not None
         )
 
     def clear_fault(self, session_id, underlying_cleared):
@@ -431,9 +428,8 @@ class RuntimeStateMachine:
         else:
             link_anchor = self.last_heartbeat_at_ms
 
-        if (
-            link_anchor is not None
-            and is_timed_out(now_ms, link_anchor, LINK_TIMEOUT_MS)
+        if link_anchor is not None and is_timed_out(
+            now_ms, link_anchor, LINK_TIMEOUT_MS
         ):
             self.enter_fault(
                 fault_code=Fault.LINK_TIMEOUT,
@@ -449,9 +445,8 @@ class RuntimeStateMachine:
             else:
                 motion_anchor = self.last_target_at_ms
 
-            if (
-                motion_anchor is not None
-                and is_timed_out(now_ms, motion_anchor, MOTION_TIMEOUT_MS)
+            if motion_anchor is not None and is_timed_out(
+                now_ms, motion_anchor, MOTION_TIMEOUT_MS
             ):
                 self.enter_fault(
                     fault_code=Fault.MOTION_TIMEOUT,

@@ -42,13 +42,9 @@ def parse_motion_limits(data: object) -> MotionLimits:
 
     units = _require_dict(root.get("units"), "units")
     if units.get("linear_velocity") != "millimeter_per_second":
-        raise MotionConfigError(
-            "units.linear_velocity must be 'millimeter_per_second'"
-        )
+        raise MotionConfigError("units.linear_velocity must be 'millimeter_per_second'")
     if units.get("yaw_rate") != "degree_per_second":
-        raise MotionConfigError(
-            "units.yaw_rate must be 'degree_per_second'"
-        )
+        raise MotionConfigError("units.yaw_rate must be 'degree_per_second'")
 
     limits = _require_dict(root.get("limits"), "limits")
 

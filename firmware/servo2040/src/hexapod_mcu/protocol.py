@@ -57,9 +57,7 @@ def _validate_message_type(message_type):
         raise ValueError("message type must be a non-empty string")
 
     if len(message_type) > MAX_MESSAGE_TYPE_CHARS:
-        raise ValueError(
-            "message type exceeds %d characters" % MAX_MESSAGE_TYPE_CHARS
-        )
+        raise ValueError("message type exceeds %d characters" % MAX_MESSAGE_TYPE_CHARS)
 
     for char in message_type:
         if not ("A" <= char <= "Z" or "0" <= char <= "9" or char == "_"):

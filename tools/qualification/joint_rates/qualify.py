@@ -191,7 +191,9 @@ def summarize(samples: list[dict], cfg: dict) -> dict:
 
     by_joint: dict[str, dict] = {}
     for index, name in enumerate(names):
-        rates = [float(row["rate_cd_s"]) for row in samples if int(row["index"]) == index]
+        rates = [
+            float(row["rate_cd_s"]) for row in samples if int(row["index"]) == index
+        ]
         peak = max(rates, default=0.0)
         peak_row = max(
             (row for row in samples if int(row["index"]) == index),
@@ -244,7 +246,9 @@ def summarize(samples: list[dict], cfg: dict) -> dict:
             "peak_deg_s": round(overall_peak / 100.0, 3),
             "peak_joint": overall_row["joint"] if overall_row else None,
             "peak_scenario": overall_row["scenario"] if overall_row else None,
-            "peak_time_s": round(float(overall_row["time_s"]), 6) if overall_row else None,
+            "peak_time_s": round(float(overall_row["time_s"]), 6)
+            if overall_row
+            else None,
         },
         "by_family": by_family,
         "by_joint": by_joint,
@@ -292,7 +296,9 @@ def print_summary(summary: dict) -> None:
         f"Samples: {summary['sample_count']}"
     )
     print()
-    print(f"{'Family':<10} {'Peak deg/s':>12} {'P99 deg/s':>12} {'P99.9 deg/s':>14} {'Candidate cd/s':>16}")
+    print(
+        f"{'Family':<10} {'Peak deg/s':>12} {'P99 deg/s':>12} {'P99.9 deg/s':>14} {'Candidate cd/s':>16}"
+    )
     print("-" * 72)
     for family, data in summary["by_family"].items():
         print(

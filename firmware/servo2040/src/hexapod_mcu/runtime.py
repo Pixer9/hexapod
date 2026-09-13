@@ -78,12 +78,7 @@ def _parse_session(text):
     return text
 
 
-_TOKEN_CHARS = (
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "._-:"
-)
+_TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-:"
 
 
 def _parse_token(text, name):
@@ -133,9 +128,7 @@ class RuntimeCoordinator:
         sm = self.state_machine
 
         if sm.state != State.BOOTING:
-            raise RuntimeErrorInternal(
-                "self-test may begin only from BOOTING"
-            )
+            raise RuntimeErrorInternal("self-test may begin only from BOOTING")
 
         begin = sm.begin_self_test()
         if not begin:
@@ -651,9 +644,7 @@ class RuntimeCoordinator:
                 now_ms=now_ms,
                 hold_pwm=False,
             )
-            responses.append(
-                self.telemetry.event("FAULT", Fault.HARDWARE)
-            )
+            responses.append(self.telemetry.event("FAULT", Fault.HARDWARE))
 
         return tuple(responses)
 
@@ -726,9 +717,7 @@ class RuntimeCoordinator:
 
         result = self.state_machine.clear_fault(
             session,
-            underlying_cleared=self._fault_condition_cleared(
-                now_ms
-            ),
+            underlying_cleared=self._fault_condition_cleared(now_ms),
         )
 
         if not result:
@@ -801,13 +790,9 @@ class RuntimeCoordinator:
 
         fault = self.state_machine.poll(now_ms)
         if fault is not None:
-            responses.append(
-                self.telemetry.event("FAULT", fault)
-            )
+            responses.append(self.telemetry.event("FAULT", fault))
 
-        should_enable = self.state_machine.pwm_should_be_enabled(
-            now_ms
-        )
+        should_enable = self.state_machine.pwm_should_be_enabled(now_ms)
         hardware_enabled = getattr(self.hardware, "enabled", None)
 
         if should_enable and hardware_enabled is not True:
@@ -862,22 +847,16 @@ class RuntimeCoordinator:
 
         if isinstance(raw, int):
             if raw <= 0 or raw > UINT32_MAX:
-                raise RuntimeErrorInternal(
-                    "session factory returned invalid uint32"
-                )
+                raise RuntimeErrorInternal("session factory returned invalid uint32")
             return "%08X" % raw
 
         if isinstance(raw, str):
             session = _parse_session(raw)
             if session == "00000000":
-                raise RuntimeErrorInternal(
-                    "session factory returned zero session"
-                )
+                raise RuntimeErrorInternal("session factory returned zero session")
             return session
 
-        raise RuntimeErrorInternal(
-            "session factory returned unsupported type"
-        )
+        raise RuntimeErrorInternal("session factory returned unsupported type")
 
     def _expected_state_error(self, expected):
         state = self.state_machine.state

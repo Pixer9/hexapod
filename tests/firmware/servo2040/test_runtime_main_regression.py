@@ -59,12 +59,7 @@ class RuntimeStageFaultRegressionTests(unittest.TestCase):
         )
 
         target = (0,) * 18
-        frame = encode_frame(
-            10,
-            "STAGE",
-            "A1B2C3D4",
-            *target
-        )
+        frame = encode_frame(10, "STAGE", "A1B2C3D4", *target)
         responses = runtime.handle_frame(frame, 100)
 
         self.assertEqual(len(responses), 1)

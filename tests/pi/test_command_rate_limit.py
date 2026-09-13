@@ -13,9 +13,7 @@ MOTION_CONFIG = REPO_ROOT / "config" / "control" / "motion.json"
 RATE_CONFIG = REPO_ROOT / "config" / "control" / "rate-limit.json"
 ROBOT_CONFIG = REPO_ROOT / "config" / "robots" / "standard.json"
 GAIT_CONFIG = REPO_ROOT / "config" / "locomotion" / "tripod.json"
-LOCOMOTION_CONFIG = (
-    REPO_ROOT / "config" / "locomotion" / "controller.json"
-)
+LOCOMOTION_CONFIG = REPO_ROOT / "config" / "locomotion" / "controller.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.control import (  # noqa: E402
@@ -58,10 +56,8 @@ class CommandRateLimitConfigTests(unittest.TestCase):
                     "schema_version": 1,
                     "profile_id": "test",
                     "units": {
-                        "translation_acceleration":
-                            "millimeter_per_second_squared",
-                        "yaw_acceleration":
-                            "degree_per_second_squared",
+                        "translation_acceleration": "millimeter_per_second_squared",
+                        "yaw_acceleration": "degree_per_second_squared",
                     },
                     "limits": {
                         "translation_accel_mm_s2": 0.0,
@@ -79,10 +75,8 @@ class CommandRateLimitConfigTests(unittest.TestCase):
                     "schema_version": 1,
                     "profile_id": "test",
                     "units": {
-                        "translation_acceleration":
-                            "millimeter_per_second_squared",
-                        "yaw_acceleration":
-                            "degree_per_second_squared",
+                        "translation_acceleration": "millimeter_per_second_squared",
+                        "yaw_acceleration": "degree_per_second_squared",
                     },
                     "limits": {
                         "translation_accel_mm_s2": 260.0,
@@ -144,9 +138,7 @@ class CommandRateLimiterTests(unittest.TestCase):
 
     def test_nonzero_collinear_slowdown_uses_deceleration_rate(self):
         limiter = self.make_limiter()
-        limiter.reset(
-            MotionCommand(vx_mm_s=80.0)
-        )
+        limiter.reset(MotionCommand(vx_mm_s=80.0))
 
         result = limiter.step(
             MotionCommand(vx_mm_s=40.0),
@@ -165,9 +157,7 @@ class CommandRateLimiterTests(unittest.TestCase):
 
     def test_translation_deceleration_preserves_current_direction(self):
         limiter = self.make_limiter()
-        limiter.reset(
-            MotionCommand(vx_mm_s=48.0, vy_mm_s=36.0)
-        )
+        limiter.reset(MotionCommand(vx_mm_s=48.0, vy_mm_s=36.0))
 
         result = limiter.step(MotionCommand.zero(), 0.05)
 
@@ -341,9 +331,7 @@ class CommandRateLimiterTests(unittest.TestCase):
         )
         locomotion = LocomotionController(
             gait,
-            load_locomotion_controller_config(
-                LOCOMOTION_CONFIG
-            ),
+            load_locomotion_controller_config(LOCOMOTION_CONFIG),
         )
         kinematics = RobotKinematics(geometry)
         limiter = self.make_limiter()
@@ -357,17 +345,13 @@ class CommandRateLimiterTests(unittest.TestCase):
         for _ in range(60):
             shaped = limiter.step(target, 0.02)
             frame = locomotion.step(shaped, 0.02)
-            solution = kinematics.solve(
-                frame.gait_frame.foot_targets_body_mm
-            )
+            solution = kinematics.solve(frame.gait_frame.foot_targets_body_mm)
             self.assertEqual(len(solution.logical_vector_deg), 18)
 
         for _ in range(60):
             shaped = limiter.step(MotionCommand.zero(), 0.02)
             frame = locomotion.step(shaped, 0.02)
-            solution = kinematics.solve(
-                frame.gait_frame.foot_targets_body_mm
-            )
+            solution = kinematics.solve(frame.gait_frame.foot_targets_body_mm)
             self.assertEqual(len(solution.logical_vector_deg), 18)
 
         self.assertTrue(limiter.output.is_zero)

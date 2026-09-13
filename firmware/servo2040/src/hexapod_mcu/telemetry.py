@@ -14,12 +14,7 @@ from .constants import JOINT_COUNT, PROTOCOL_MINOR, UINT32_MAX
 from .protocol import encode_frame
 
 
-_TOKEN_CHARS = (
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "._-:"
-)
+_TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-:"
 
 
 class TelemetryError(ValueError):
@@ -71,9 +66,7 @@ def _session_text(session_id):
 
     for char in session_id:
         if not ("0" <= char <= "9" or "A" <= char <= "F"):
-            raise TelemetryError(
-                "session_id must contain uppercase hexadecimal digits"
-            )
+            raise TelemetryError("session_id must contain uppercase hexadecimal digits")
 
     return session_id
 
@@ -196,9 +189,7 @@ class TelemetryEncoder:
             commanded = tuple(runtime.commanded_target)
 
             if len(commanded) != JOINT_COUNT:
-                raise TelemetryError(
-                    "runtime commanded target has wrong joint count"
-                )
+                raise TelemetryError("runtime commanded target has wrong joint count")
 
             for index, value in enumerate(commanded):
                 _require_int(value, "commanded[%d]" % index)
@@ -216,7 +207,7 @@ class TelemetryEncoder:
             bus_ma,
             uptime_ms,
             command_valid,
-            *commanded
+            *commanded,
         )
 
     def _emit(self, message_type, *fields):

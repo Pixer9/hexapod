@@ -22,15 +22,8 @@ PI_SRC = REPO_ROOT / "src"
 FIRMWARE_SRC = REPO_ROOT / "firmware" / "servo2040" / "src"
 
 HX1_CONFIG_PATH = REPO_ROOT / "config" / "hardware" / "servo2040.json"
-SOFT_LIMIT_PATH = (
-    REPO_ROOT
-    / "config"
-    / "robots"
-    / "standard-joint-soft-limits.json"
-)
-ACTUATOR_PROFILE_PATH = (
-    FIRMWARE_SRC / "config" / "actuator-profile.json"
-)
+SOFT_LIMIT_PATH = REPO_ROOT / "config" / "robots" / "standard-joint-soft-limits.json"
+ACTUATOR_PROFILE_PATH = FIRMWARE_SRC / "config" / "actuator-profile.json"
 
 # The packages have distinct top-level names, so both production trees can
 # coexist in one CPython process.
@@ -116,8 +109,7 @@ SESSION_INT = 0xA1B2C3D4
 SESSION = "A1B2C3D4"
 
 SAFE_DEGREES = tuple(
-    90.0 if name.endswith("_tibia") else 0.0
-    for name in PI_CANONICAL_JOINT_NAMES
+    90.0 if name.endswith("_tibia") else 0.0 for name in PI_CANONICAL_JOINT_NAMES
 )
 
 
@@ -155,9 +147,7 @@ def _class_tokens(cls):
 
 def _profile_variant(*, max_rate_cd_s, revision_delta):
     """Create a host-only profile variant from the real deployed profile data."""
-    data = json.loads(
-        ACTUATOR_PROFILE_PATH.read_text(encoding="utf-8")
-    )
+    data = json.loads(ACTUATOR_PROFILE_PATH.read_text(encoding="utf-8"))
     data["profile_revision"] += revision_delta
 
     for joint in data["joints"]:
@@ -206,9 +196,7 @@ def _negotiate(client, runtime, *, now_ms=10):
     responses = runtime.handle_frame(hello.frame, now_ms)
 
     if len(responses) != 1:
-        raise AssertionError(
-            "HELLO must produce exactly one INFO in contract flow"
-        )
+        raise AssertionError("HELLO must produce exactly one INFO in contract flow")
 
     info = client.accept_frame(responses[0])
     if not isinstance(info, HX1Info):
@@ -426,11 +414,7 @@ class ProtocolPrimitiveContractTests(unittest.TestCase):
         pi_framer = HX1LineFramer()
         mcu_framer = MCULineFramer()
 
-        stream = (
-            b"X" * (PI_MAX_FRAME_BYTES + 1)
-            + b"\n"
-            + frame_a
-        )
+        stream = b"X" * (PI_MAX_FRAME_BYTES + 1) + b"\n" + frame_a
 
         self.assertEqual(
             tuple(pi_framer.feed(stream)),
@@ -447,12 +431,8 @@ class ProtocolPrimitiveContractTests(unittest.TestCase):
 class ProfileAndTimingContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.config = load_hx1_client_config(
-            HX1_CONFIG_PATH
-        )
-        cls.profile = load_profile(
-            ACTUATOR_PROFILE_PATH
-        )
+        cls.config = load_hx1_client_config(HX1_CONFIG_PATH)
+        cls.profile = load_profile(ACTUATOR_PROFILE_PATH)
 
     def test_pi_link_policy_matches_exact_current_mcu_profile(self):
         self.assertEqual(
@@ -473,9 +453,7 @@ class ProfileAndTimingContractTests(unittest.TestCase):
         )
 
     def test_canonical_joint_names_and_soft_envelope_match_mcu_profile(self):
-        soft = load_joint_soft_limit_profile(
-            SOFT_LIMIT_PATH
-        )
+        soft = load_joint_soft_limit_profile(SOFT_LIMIT_PATH)
 
         self.assertEqual(
             PI_CANONICAL_JOINT_NAMES,
@@ -500,12 +478,8 @@ class ProfileAndTimingContractTests(unittest.TestCase):
                     hard_joint.name,
                 )
 
-                soft_min_cd = int(
-                    round(soft_joint.min_deg * 100.0)
-                )
-                soft_max_cd = int(
-                    round(soft_joint.max_deg * 100.0)
-                )
+                soft_min_cd = int(round(soft_joint.min_deg * 100.0))
+                soft_max_cd = int(round(soft_joint.max_deg * 100.0))
 
                 self.assertGreaterEqual(
                     soft_min_cd,
@@ -547,9 +521,7 @@ class ProfileAndTimingContractTests(unittest.TestCase):
 class WireIntegrationContractTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.base_config = load_hx1_client_config(
-            HX1_CONFIG_PATH
-        )
+        cls.base_config = load_hx1_client_config(HX1_CONFIG_PATH)
 
     def test_all_pi_command_builders_have_mcu_compatible_schemas(self):
         profile = _profile_variant(
@@ -566,9 +538,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         client = HX1ClientCore(config)
 
         hello = client.hello()
-        seq, message_type, fields = mcu_parse_frame(
-            hello.frame
-        )
+        seq, message_type, fields = mcu_parse_frame(hello.frame)
         self.assertEqual(seq, hello.seq)
         self.assertEqual(message_type, "HELLO")
         self.assertEqual(len(fields), 2)
@@ -597,9 +567,7 @@ class WireIntegrationContractTests(unittest.TestCase):
 
         for outbound, expected_field_count in commands:
             with self.subTest(command=outbound.command):
-                seq, message_type, fields = mcu_parse_frame(
-                    outbound.frame
-                )
+                seq, message_type, fields = mcu_parse_frame(outbound.frame)
                 self.assertEqual(seq, outbound.seq)
                 self.assertEqual(
                     message_type,
@@ -611,9 +579,7 @@ class WireIntegrationContractTests(unittest.TestCase):
                 )
 
     def test_periodic_prehello_status_is_parseable_by_pi(self):
-        profile = load_profile(
-            ACTUATOR_PROFILE_PATH
-        )
+        profile = load_profile(ACTUATOR_PROFILE_PATH)
         runtime, _, _ = _make_runtime(profile)
 
         # The current profile may be qualified in a future revision. Either
@@ -622,9 +588,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         runtime.perform_self_test(0)
 
         client = HX1ClientCore(self.base_config)
-        status = client.accept_frame(
-            runtime.status_frame(10)
-        )
+        status = client.accept_frame(runtime.status_frame(10))
 
         self.assertIsInstance(status, HX1Status)
         self.assertEqual(status.session, "00000000")
@@ -641,9 +605,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             self.base_config,
             profile,
         )
-        runtime, state_machine, hardware = _make_runtime(
-            profile
-        )
+        runtime, state_machine, hardware = _make_runtime(profile)
 
         self.assertFalse(runtime.perform_self_test(0))
         self.assertEqual(
@@ -696,9 +658,7 @@ class WireIntegrationContractTests(unittest.TestCase):
 
     def test_invalid_profile_fallback_info_becomes_peer_mismatch(self):
         profile = firmware_main.InvalidProfile()
-        runtime, state_machine, hardware = _make_runtime(
-            profile
-        )
+        runtime, state_machine, hardware = _make_runtime(profile)
 
         self.assertFalse(runtime.perform_self_test(0))
         self.assertEqual(
@@ -720,9 +680,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         )
         self.assertEqual(len(responses), 1)
 
-        _, message_type, fields = mcu_parse_frame(
-            responses[0]
-        )
+        _, message_type, fields = mcu_parse_frame(responses[0])
         self.assertEqual(message_type, "INFO")
         self.assertEqual(fields[5], "invalid-profile")
         self.assertEqual(fields[6], "0")
@@ -741,19 +699,13 @@ class WireIntegrationContractTests(unittest.TestCase):
             state_machine.session_id,
             SESSION,
         )
-        self.assertFalse(
-            state_machine.session_profile_match
-        )
+        self.assertFalse(state_machine.session_profile_match)
         self.assertFalse(client.negotiated)
         self.assertIsNone(client.session)
 
     def test_profile_mismatch_is_rejected_by_pi_after_mcu_info(self):
-        profile = load_profile(
-            ACTUATOR_PROFILE_PATH
-        )
-        runtime, state_machine, _ = _make_runtime(
-            profile
-        )
+        profile = load_profile(ACTUATOR_PROFILE_PATH)
+        runtime, state_machine, _ = _make_runtime(profile)
         runtime.perform_self_test(0)
 
         bad_config = replace(
@@ -778,9 +730,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             state_machine.session_id,
             SESSION,
         )
-        self.assertFalse(
-            state_machine.session_profile_match
-        )
+        self.assertFalse(state_machine.session_profile_match)
         self.assertFalse(client.negotiated)
         self.assertIsNone(client.session)
 
@@ -793,9 +743,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             self.base_config,
             profile,
         )
-        runtime, state_machine, hardware = _make_runtime(
-            profile
-        )
+        runtime, state_machine, hardware = _make_runtime(profile)
         self.assertTrue(runtime.perform_self_test(0))
 
         client = HX1ClientCore(config)
@@ -826,20 +774,14 @@ class WireIntegrationContractTests(unittest.TestCase):
         self.assertFalse(hardware.enabled)
 
     def test_zero_session_estop_round_trip(self):
-        profile = load_profile(
-            ACTUATOR_PROFILE_PATH
-        )
-        runtime, state_machine, hardware = _make_runtime(
-            profile
-        )
+        profile = load_profile(ACTUATOR_PROFILE_PATH)
+        runtime, state_machine, hardware = _make_runtime(profile)
         runtime.perform_self_test(0)
 
         client = HX1ClientCore(self.base_config)
         outbound = client.estop("contract_test")
 
-        _, message_type, fields = mcu_parse_frame(
-            outbound.frame
-        )
+        _, message_type, fields = mcu_parse_frame(outbound.frame)
         self.assertEqual(message_type, "ESTOP")
         self.assertEqual(fields[0], "00000000")
 
@@ -875,9 +817,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             self.base_config,
             profile,
         )
-        runtime, state_machine, hardware = _make_runtime(
-            profile
-        )
+        runtime, state_machine, hardware = _make_runtime(profile)
 
         self.assertTrue(runtime.perform_self_test(0))
         self.assertEqual(
@@ -900,9 +840,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             20,
         )
         self.assertEqual(len(responses), 1)
-        stage_ack = client.accept_frame(
-            responses[0]
-        )
+        stage_ack = client.accept_frame(responses[0])
         self.assertIsInstance(stage_ack, HX1Ack)
         self.assertEqual(stage_ack.command, "STAGE")
 
@@ -921,9 +859,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             40,
         )
         self.assertEqual(len(responses), 1)
-        arm_ack = client.accept_frame(
-            responses[0]
-        )
+        arm_ack = client.accept_frame(responses[0])
         self.assertIsInstance(arm_ack, HX1Ack)
         self.assertEqual(arm_ack.command, "ARM")
         self.assertTrue(hardware.enabled)
@@ -934,9 +870,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             50,
         )
         self.assertEqual(len(responses), 1)
-        start_ack = client.accept_frame(
-            responses[0]
-        )
+        start_ack = client.accept_frame(responses[0])
         self.assertIsInstance(start_ack, HX1Ack)
         self.assertEqual(start_ack.command, "START")
         self.assertEqual(
@@ -947,9 +881,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         target_deg = list(SAFE_DEGREES)
         target_deg[0] = 0.1
 
-        target = client.target_degrees(
-            target_deg
-        )
+        target = client.target_degrees(target_deg)
         self.assertEqual(
             runtime.handle_frame(
                 target.frame,
@@ -965,9 +897,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         )
         self.assertEqual(len(responses), 1)
 
-        status = client.accept_frame(
-            responses[0]
-        )
+        status = client.accept_frame(responses[0])
         self.assertIsInstance(status, HX1Status)
         self.assertEqual(
             status.state,
@@ -984,9 +914,7 @@ class WireIntegrationContractTests(unittest.TestCase):
         self.assertTrue(status.command_valid)
         self.assertEqual(
             status.commanded_joint_cd,
-            joint_degrees_to_centidegrees(
-                target_deg
-            ),
+            joint_degrees_to_centidegrees(target_deg),
         )
 
         stop = client.stop()
@@ -995,9 +923,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             90,
         )
         self.assertEqual(len(responses), 1)
-        stop_ack = client.accept_frame(
-            responses[0]
-        )
+        stop_ack = client.accept_frame(responses[0])
         self.assertIsInstance(stop_ack, HX1Ack)
         self.assertEqual(stop_ack.command, "STOP")
         self.assertEqual(
@@ -1012,9 +938,7 @@ class WireIntegrationContractTests(unittest.TestCase):
             100,
         )
         self.assertEqual(len(responses), 1)
-        disarm_ack = client.accept_frame(
-            responses[0]
-        )
+        disarm_ack = client.accept_frame(responses[0])
         self.assertIsInstance(disarm_ack, HX1Ack)
         self.assertEqual(
             disarm_ack.command,

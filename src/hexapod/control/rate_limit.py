@@ -39,51 +39,37 @@ class CommandRateLimitConfig:
 
 def _positive_float(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise CommandRateLimitError(
-            f"{name} must be a finite number > 0"
-        )
+        raise CommandRateLimitError(f"{name} must be a finite number > 0")
 
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise CommandRateLimitError(
-            f"{name} must be a finite number > 0"
-        ) from exc
+        raise CommandRateLimitError(f"{name} must be a finite number > 0") from exc
 
     if not math.isfinite(result) or result <= 0.0:
-        raise CommandRateLimitError(
-            f"{name} must be a finite number > 0"
-        )
+        raise CommandRateLimitError(f"{name} must be a finite number > 0")
 
     return result
 
 
 def _finite_nonnegative(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise CommandRateLimitError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise CommandRateLimitError(f"{name} must be a finite number >= 0")
 
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise CommandRateLimitError(
-            f"{name} must be a finite number >= 0"
-        ) from exc
+        raise CommandRateLimitError(f"{name} must be a finite number >= 0") from exc
 
     if not math.isfinite(result) or result < 0.0:
-        raise CommandRateLimitError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise CommandRateLimitError(f"{name} must be a finite number >= 0")
 
     return result
 
 
 def _nonempty_string(value: object, name: str) -> str:
     if not isinstance(value, str) or not value:
-        raise CommandRateLimitError(
-            f"{name} must be a non-empty string"
-        )
+        raise CommandRateLimitError(f"{name} must be a non-empty string")
     return value
 
 
@@ -104,18 +90,13 @@ def parse_command_rate_limit_config(
     units = data.get("units")
     if not isinstance(units, dict):
         raise CommandRateLimitError("units must be an object")
-    if (
-        units.get("translation_acceleration")
-        != "millimeter_per_second_squared"
-    ):
+    if units.get("translation_acceleration") != "millimeter_per_second_squared":
         raise CommandRateLimitError(
-            "units.translation_acceleration must be "
-            "'millimeter_per_second_squared'"
+            "units.translation_acceleration must be 'millimeter_per_second_squared'"
         )
     if units.get("yaw_acceleration") != "degree_per_second_squared":
         raise CommandRateLimitError(
-            "units.yaw_acceleration must be "
-            "'degree_per_second_squared'"
+            "units.yaw_acceleration must be 'degree_per_second_squared'"
         )
 
     limits = data.get("limits")
@@ -131,8 +112,7 @@ def parse_command_rate_limit_config(
     extra_root = set(data) - expected_root
     if extra_root:
         raise CommandRateLimitError(
-            "unsupported command-rate config keys: "
-            + ", ".join(sorted(extra_root))
+            "unsupported command-rate config keys: " + ", ".join(sorted(extra_root))
         )
 
     expected_units = {
@@ -142,8 +122,7 @@ def parse_command_rate_limit_config(
     extra_units = set(units) - expected_units
     if extra_units:
         raise CommandRateLimitError(
-            "unsupported command-rate unit keys: "
-            + ", ".join(sorted(extra_units))
+            "unsupported command-rate unit keys: " + ", ".join(sorted(extra_units))
         )
 
     expected_limits = {
@@ -155,8 +134,7 @@ def parse_command_rate_limit_config(
     extra_limits = set(limits) - expected_limits
     if extra_limits:
         raise CommandRateLimitError(
-            "unsupported command-rate limit keys: "
-            + ", ".join(sorted(extra_limits))
+            "unsupported command-rate limit keys: " + ", ".join(sorted(extra_limits))
         )
 
     return CommandRateLimitConfig(
@@ -294,16 +272,9 @@ def _slew_translation(
     # slowing down uses decel, speeding up uses accel.
     delta_x = tx - cx
     delta_y = ty - cy
-    target_delta_projection = (
-        tx * delta_x
-        + ty * delta_y
-    )
+    target_delta_projection = tx * delta_x + ty * delta_y
 
-    rate = (
-        decel
-        if target_delta_projection < 0.0
-        else accel
-    )
+    rate = decel if target_delta_projection < 0.0 else accel
 
     return _move_vector_toward(
         current,
@@ -400,9 +371,7 @@ class CommandRateLimiter:
         """
         value = MotionCommand.zero() if command is None else command
         if not isinstance(value, MotionCommand):
-            raise CommandRateLimitError(
-                "reset command must be a MotionCommand"
-            )
+            raise CommandRateLimitError("reset command must be a MotionCommand")
         self.limits.validate(value)
         self._output = value
         return value
@@ -414,9 +383,7 @@ class CommandRateLimiter:
     ) -> MotionCommand:
         """Advance the limiter by exactly ``dt_s`` toward ``target``."""
         if not isinstance(target, MotionCommand):
-            raise CommandRateLimitError(
-                "target must be a MotionCommand"
-            )
+            raise CommandRateLimitError("target must be a MotionCommand")
 
         self.limits.validate(target)
         dt = _finite_nonnegative(dt_s, "dt_s")

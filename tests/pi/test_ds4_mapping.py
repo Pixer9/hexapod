@@ -56,8 +56,8 @@ class DS4MappingTests(unittest.TestCase):
     def test_full_axes_map_to_motion_limits(self):
         command = self.mapper.command_from_axes(
             {
-                "ABS_Y": -1.0,   # physical forward
-                "ABS_X": -1.0,   # physical left
+                "ABS_Y": -1.0,  # physical forward
+                "ABS_X": -1.0,  # physical left
                 "ABS_RX": -1.0,  # physical left / CCW
             }
         )
@@ -81,9 +81,7 @@ class DS4MappingTests(unittest.TestCase):
         # Physical forward is negative ABS_Y on this controller.
         # x=.55 after inversion, with dz=.10, becomes .5 before expo.
         # (1-.35)*.5 + .35*(.5**3) = .36875.
-        command = self.mapper.command_from_axes(
-            {"ABS_Y": -0.55}
-        )
+        command = self.mapper.command_from_axes({"ABS_Y": -0.55})
 
         self.assertAlmostEqual(
             command.vx_mm_s,

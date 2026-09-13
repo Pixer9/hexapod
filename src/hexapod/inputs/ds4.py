@@ -139,8 +139,7 @@ def parse_ds4_config(data: object) -> DS4Config:
     if not isinstance(names_raw, list) or not names_raw:
         raise DS4ConfigError("device.name_contains must be a non-empty array")
     device_names = tuple(
-        _nonempty_string(value, "device.name_contains[]")
-        for value in names_raw
+        _nonempty_string(value, "device.name_contains[]") for value in names_raw
     )
 
     axis_processing = _require_dict(
@@ -174,9 +173,7 @@ def parse_ds4_config(data: object) -> DS4Config:
 
     axes_raw = _require_dict(root.get("axes"), "axes")
     if set(axes_raw) != {"vx", "vy", "yaw_rate"}:
-        raise DS4ConfigError(
-            "axes must contain exactly vx, vy, and yaw_rate"
-        )
+        raise DS4ConfigError("axes must contain exactly vx, vy, and yaw_rate")
     axes = {
         key: _load_binding(axes_raw[key], f"axes.{key}")
         for key in ("vx", "vy", "yaw_rate")
@@ -219,16 +216,12 @@ def load_ds4_config(path: str | Path) -> DS4Config:
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as exc:
-        raise DS4ConfigError(
-            f"could not read DS4 config {path}: {exc}"
-        ) from exc
+        raise DS4ConfigError(f"could not read DS4 config {path}: {exc}") from exc
 
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
-        raise DS4ConfigError(
-            f"invalid JSON in DS4 config {path}: {exc}"
-        ) from exc
+        raise DS4ConfigError(f"invalid JSON in DS4 config {path}: {exc}") from exc
 
     return parse_ds4_config(data)
 
@@ -239,8 +232,7 @@ def normalize_axis(value: int, minimum: int, maximum: int) -> float:
         raise ValueError("axis maximum must be greater than minimum")
 
     normalized = (
-        (float(value) - float(minimum))
-        / float(maximum - minimum)
+        (float(value) - float(minimum)) / float(maximum - minimum)
     ) * 2.0 - 1.0
 
     return max(-1.0, min(1.0, normalized))
@@ -255,7 +247,7 @@ def _shape_axis(value: float, deadzone: float, expo: float) -> float:
     magnitude = (abs(value) - deadzone) / (1.0 - deadzone)
     value = math.copysign(magnitude, value)
 
-    return (1.0 - expo) * value + expo * (value ** 3)
+    return (1.0 - expo) * value + expo * (value**3)
 
 
 class DS4Mapper:
@@ -286,10 +278,7 @@ class DS4Mapper:
         command = MotionCommand(
             vx_mm_s=values["vx"] * self.limits.max_vx_mm_s,
             vy_mm_s=values["vy"] * self.limits.max_vy_mm_s,
-            yaw_rate_deg_s=(
-                values["yaw_rate"]
-                * self.limits.max_yaw_rate_deg_s
-            ),
+            yaw_rate_deg_s=(values["yaw_rate"] * self.limits.max_yaw_rate_deg_s),
         )
 
         return self.limits.validate(command)
@@ -306,8 +295,7 @@ class DS4InputState:
         self.config = config
         self.mapper = DS4Mapper(config, limits)
         self.normalized_axes: dict[str, float] = {
-            binding.code: 0.0
-            for binding in config.axes.values()
+            binding.code: 0.0 for binding in config.axes.values()
         }
         self.connected = False
         self.motion_enabled = config.start_motion_enabled
@@ -362,26 +350,18 @@ class DS4InputState:
             return
 
         if code == self.config.button_estop:
-            self._actions.append(
-                DS4Action(DS4ActionType.ESTOP, now)
-            )
+            self._actions.append(DS4Action(DS4ActionType.ESTOP, now))
             return
 
         if code == self.config.button_clear_estop_request:
-            self._actions.append(
-                DS4Action(DS4ActionType.CLEAR_ESTOP_REQUEST, now)
-            )
+            self._actions.append(DS4Action(DS4ActionType.CLEAR_ESTOP_REQUEST, now))
 
     def disconnect(self, *, now_s: float) -> None:
         if self.connected:
-            self._actions.append(
-                DS4Action(DS4ActionType.DISCONNECTED, float(now_s))
-            )
+            self._actions.append(DS4Action(DS4ActionType.DISCONNECTED, float(now_s)))
             # A disconnect is also an explicit safety request. The future
             # safety supervisor decides how that request maps into runtime state.
-            self._actions.append(
-                DS4Action(DS4ActionType.ESTOP, float(now_s))
-            )
+            self._actions.append(DS4Action(DS4ActionType.ESTOP, float(now_s)))
 
         self.connected = False
         self.motion_enabled = False

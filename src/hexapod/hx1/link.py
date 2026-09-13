@@ -87,9 +87,7 @@ class HX1Link:
 
         if accepted != len(outbound.frame):
             self._invalidate_after_io_failure()
-            raise HX1LinkError(
-                "HX1 transport accepted an incomplete outbound frame"
-            )
+            raise HX1LinkError("HX1 transport accepted an incomplete outbound frame")
 
         return accepted
 

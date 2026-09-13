@@ -8,9 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
-HX1_CONFIG = (
-    REPO_ROOT / "config" / "hardware" / "servo2040.json"
-)
+HX1_CONFIG = REPO_ROOT / "config" / "hardware" / "servo2040.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.hx1 import (  # noqa: E402
@@ -81,9 +79,7 @@ class FakeSerialBackend:
 
 class RecordingFactory:
     def __init__(self, backend=None, error=None):
-        self.backend = (
-            backend if backend is not None else FakeSerialBackend()
-        )
+        self.backend = backend if backend is not None else FakeSerialBackend()
         self.error = error
         self.calls = []
 
@@ -113,11 +109,7 @@ class SerialHX1TransportTests(unittest.TestCase):
             self.config.write_timeout_s,
             0.25,
         )
-        self.assertTrue(
-            self.config.device_path.startswith(
-                "/dev/serial/by-id/"
-            )
-        )
+        self.assertTrue(self.config.device_path.startswith("/dev/serial/by-id/"))
 
     def test_serial_transport_satisfies_transport_protocol(self):
         transport, _ = self.make_transport()
@@ -174,9 +166,7 @@ class SerialHX1TransportTests(unittest.TestCase):
             transport.write(b"x")
 
     def test_read_is_nonblocking_when_no_bytes_wait(self):
-        transport, _ = self.make_transport(
-            FakeSerialBackend(rx=b"")
-        )
+        transport, _ = self.make_transport(FakeSerialBackend(rx=b""))
         transport.open()
 
         self.assertEqual(transport.read(), b"")
@@ -191,9 +181,7 @@ class SerialHX1TransportTests(unittest.TestCase):
         self.assertEqual(transport.read(), b"")
 
     def test_write_completes_across_short_backend_writes(self):
-        backend = FakeSerialBackend(
-            write_chunks=[2, 1, 99]
-        )
+        backend = FakeSerialBackend(write_chunks=[2, 1, 99])
         transport, _ = self.make_transport(backend)
         transport.open()
 
@@ -215,16 +203,12 @@ class SerialHX1TransportTests(unittest.TestCase):
 
     def test_backend_errors_are_wrapped_as_transport_errors(self):
         cases = (
-            FakeSerialBackend(
-                waiting_error=OSError("gone")
-            ),
+            FakeSerialBackend(waiting_error=OSError("gone")),
             FakeSerialBackend(
                 read_error=OSError("gone"),
                 rx=b"x",
             ),
-            FakeSerialBackend(
-                write_error=OSError("gone")
-            ),
+            FakeSerialBackend(write_error=OSError("gone")),
         )
 
         for backend in cases:
@@ -241,9 +225,7 @@ class SerialHX1TransportTests(unittest.TestCase):
                         transport.write(b"x")
 
     def test_open_failure_does_not_leave_transport_open(self):
-        factory = RecordingFactory(
-            error=OSError("permission denied")
-        )
+        factory = RecordingFactory(error=OSError("permission denied"))
         transport = SerialHX1Transport(
             self.config.device_path,
             self.config.baudrate,

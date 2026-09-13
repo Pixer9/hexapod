@@ -56,7 +56,9 @@ def _device_matches(
     evdev_module: Any,
 ) -> bool:
     name = str(getattr(device, "name", "") or "")
-    if not any(fragment.lower() in name.lower() for fragment in config.device_name_contains):
+    if not any(
+        fragment.lower() in name.lower() for fragment in config.device_name_contains
+    ):
         return False
 
     try:
@@ -136,9 +138,7 @@ def discover_ds4_device(
                 pass
 
     if not matches:
-        raise DS4EvdevError(
-            "no matching DS4 evdev node was found"
-        )
+        raise DS4EvdevError("no matching DS4 evdev node was found")
 
     # Stable ordering avoids node-enumeration order deciding between otherwise
     # equivalent candidates.
@@ -159,9 +159,7 @@ class DS4EvdevReader:
     ):
         self.config = config
         self._clock = clock
-        self._evdev = (
-            evdev_module if evdev_module is not None else _load_evdev()
-        )
+        self._evdev = evdev_module if evdev_module is not None else _load_evdev()
         self._state = DS4InputState(config, limits)
         self._lock = threading.Lock()
         self._stop = threading.Event()
@@ -306,12 +304,13 @@ class DS4EvdevReader:
             return
 
         button_by_code = {
-            _resolve_code(ecodes, self.config.button_toggle_motion):
-                self.config.button_toggle_motion,
-            _resolve_code(ecodes, self.config.button_estop):
-                self.config.button_estop,
-            _resolve_code(ecodes, self.config.button_clear_estop_request):
-                self.config.button_clear_estop_request,
+            _resolve_code(
+                ecodes, self.config.button_toggle_motion
+            ): self.config.button_toggle_motion,
+            _resolve_code(ecodes, self.config.button_estop): self.config.button_estop,
+            _resolve_code(
+                ecodes, self.config.button_clear_estop_request
+            ): self.config.button_clear_estop_request,
         }
 
         button_name = button_by_code.get(int(event.code))
@@ -344,9 +343,7 @@ class DS4EvdevReader:
             # command source, even if evdev did not raise an exception.
             if not self._stop.is_set():
                 disconnected = True
-                log.warning(
-                    "DS4 evdev read loop ended unexpectedly"
-                )
+                log.warning("DS4 evdev read loop ended unexpectedly")
 
         except OSError:
             if not self._stop.is_set():

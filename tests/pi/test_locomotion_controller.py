@@ -11,9 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
 ROBOT_CONFIG = REPO_ROOT / "config" / "robots" / "standard.json"
 GAIT_CONFIG = REPO_ROOT / "config" / "locomotion" / "tripod.json"
-CONTROLLER_CONFIG = (
-    REPO_ROOT / "config" / "locomotion" / "controller.json"
-)
+CONTROLLER_CONFIG = REPO_ROOT / "config" / "locomotion" / "controller.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.control import MotionCommand  # noqa: E402
@@ -293,17 +291,13 @@ class LocomotionControllerTests(unittest.TestCase):
         # Start and run for one second at 50 Hz.
         for _ in range(50):
             frame = controller.step(full_command, 0.02)
-            solution = kinematics.solve(
-                frame.gait_frame.foot_targets_body_mm
-            )
+            solution = kinematics.solve(frame.gait_frame.foot_targets_body_mm)
             self.assertEqual(len(solution.logical_vector_deg), 18)
 
         # Normal stop blend back to deterministic flat stance.
         for _ in range(30):
             frame = controller.step(MotionCommand.zero(), 0.02)
-            solution = kinematics.solve(
-                frame.gait_frame.foot_targets_body_mm
-            )
+            solution = kinematics.solve(frame.gait_frame.foot_targets_body_mm)
             self.assertEqual(len(solution.logical_vector_deg), 18)
 
         self.assertEqual(frame.mode, LocomotionMode.IDLE)

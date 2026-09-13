@@ -59,21 +59,13 @@ class HX1Transport(Protocol):
 
 def _normalize_write_data(data: object) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
-        raise HX1TransportValueError(
-            "transport write data must be bytes or bytearray"
-        )
+        raise HX1TransportValueError("transport write data must be bytes or bytearray")
     return bytes(data)
 
 
 def _validate_max_bytes(max_bytes: object) -> int:
-    if (
-        isinstance(max_bytes, bool)
-        or not isinstance(max_bytes, int)
-        or max_bytes <= 0
-    ):
-        raise HX1TransportValueError(
-            "max_bytes must be a positive integer"
-        )
+    if isinstance(max_bytes, bool) or not isinstance(max_bytes, int) or max_bytes <= 0:
+        raise HX1TransportValueError("max_bytes must be a positive integer")
     return max_bytes
 
 
@@ -150,6 +142,4 @@ class FakeHX1Transport:
 
     def _require_open(self) -> None:
         if not self._is_open:
-            raise HX1TransportClosedError(
-                "HX1 transport is not open"
-            )
+            raise HX1TransportClosedError("HX1 transport is not open")

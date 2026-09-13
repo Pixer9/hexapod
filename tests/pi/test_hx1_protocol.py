@@ -51,9 +51,7 @@ class HX1ProtocolTests(unittest.TestCase):
         self.assertEqual(parsed.message_type, "ARM")
 
     def test_crc_corruption_is_rejected(self):
-        encoded = bytearray(
-            encode_frame(1, "ARM", "A1B2C3D4")
-        )
+        encoded = bytearray(encode_frame(1, "ARM", "A1B2C3D4"))
         encoded[-3] = ord("0")
 
         with self.assertRaises(HX1CRCError):

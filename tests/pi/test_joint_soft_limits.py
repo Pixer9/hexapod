@@ -13,18 +13,11 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
 
 ROBOT_CONFIG = REPO_ROOT / "config" / "robots" / "standard.json"
-SOFT_LIMIT_CONFIG = (
-    REPO_ROOT / "config" / "robots" / "standard-joint-soft-limits.json"
-)
+SOFT_LIMIT_CONFIG = REPO_ROOT / "config" / "robots" / "standard-joint-soft-limits.json"
 GAIT_CONFIG = REPO_ROOT / "config" / "locomotion" / "tripod.json"
 MOTION_CONFIG = REPO_ROOT / "config" / "control" / "motion.json"
 MCU_PROFILE = (
-    REPO_ROOT
-    / "firmware"
-    / "servo2040"
-    / "src"
-    / "config"
-    / "actuator-profile.json"
+    REPO_ROOT / "firmware" / "servo2040" / "src" / "config" / "actuator-profile.json"
 )
 
 sys.path.insert(0, str(SRC))
@@ -183,9 +176,7 @@ class ConfiguredGaitEnvelopeTests(unittest.TestCase):
         self.assertEqual(self.gait_config.step_height_mm, 30.0)
 
     def test_reference_stance_fits_soft_limits(self):
-        solution = self.kinematics.solve(
-            self.gait.stance_anchors_body_mm
-        )
+        solution = self.kinematics.solve(self.gait.stance_anchors_body_mm)
         self.soft.validate(solution.logical_vector_deg)
 
     def test_configured_command_phase_sweep_stays_inside_soft_limits(self):
@@ -232,12 +223,8 @@ class ConfiguredGaitEnvelopeTests(unittest.TestCase):
                     phase,
                     blend=1.0,
                 )
-                solution = self.kinematics.solve(
-                    frame.foot_targets_body_mm
-                )
-                vector = self.soft.validate(
-                    solution.logical_vector_deg
-                )
+                solution = self.kinematics.solve(frame.foot_targets_body_mm)
+                vector = self.soft.validate(solution.logical_vector_deg)
 
                 for index, value in enumerate(vector):
                     observed_min[index] = min(

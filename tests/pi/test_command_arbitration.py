@@ -48,15 +48,9 @@ class CommandArbitrationTests(unittest.TestCase):
         self.assertEqual(selected.age_s, 0.0)
 
     def test_priority_is_ds4_then_web_then_autonomy(self):
-        self.arbiter.publish(
-            sample(MotionSource.AUTONOMY, 10.0, 1.0, 20.0)
-        )
-        self.arbiter.publish(
-            sample(MotionSource.WEB, 20.0, 1.0, 20.0)
-        )
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 30.0, 1.0, 20.0)
-        )
+        self.arbiter.publish(sample(MotionSource.AUTONOMY, 10.0, 1.0, 20.0))
+        self.arbiter.publish(sample(MotionSource.WEB, 20.0, 1.0, 20.0))
+        self.arbiter.publish(sample(MotionSource.DS4, 30.0, 1.0, 20.0))
 
         selected = self.arbiter.select(5.0)
 
@@ -64,12 +58,8 @@ class CommandArbitrationTests(unittest.TestCase):
         self.assertEqual(selected.command.vx_mm_s, 30.0)
 
     def test_zero_ds4_command_still_owns_control_while_fresh(self):
-        self.arbiter.publish(
-            sample(MotionSource.AUTONOMY, 50.0, 1.0, 20.0)
-        )
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 0.0, 2.0, 20.0)
-        )
+        self.arbiter.publish(sample(MotionSource.AUTONOMY, 50.0, 1.0, 20.0))
+        self.arbiter.publish(sample(MotionSource.DS4, 0.0, 2.0, 20.0))
 
         selected = self.arbiter.select(3.0)
 
@@ -77,12 +67,8 @@ class CommandArbitrationTests(unittest.TestCase):
         self.assertTrue(selected.command.is_zero)
 
     def test_expired_ds4_falls_back_to_fresh_web(self):
-        self.arbiter.publish(
-            sample(MotionSource.WEB, 20.0, 1.0, 20.0)
-        )
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 30.0, 1.0, 5.0)
-        )
+        self.arbiter.publish(sample(MotionSource.WEB, 20.0, 1.0, 20.0))
+        self.arbiter.publish(sample(MotionSource.DS4, 30.0, 1.0, 5.0))
 
         selected = self.arbiter.select(5.0)
 
@@ -101,9 +87,7 @@ class CommandArbitrationTests(unittest.TestCase):
         self.assertFalse(command.is_fresh(4.999))
 
     def test_clear_removes_source_immediately(self):
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 10.0, 1.0, 20.0)
-        )
+        self.arbiter.publish(sample(MotionSource.DS4, 10.0, 1.0, 20.0))
         self.arbiter.clear(MotionSource.DS4)
 
         self.assertEqual(
@@ -112,20 +96,14 @@ class CommandArbitrationTests(unittest.TestCase):
         )
 
     def test_out_of_order_publication_is_rejected(self):
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 10.0, 5.0, 10.0)
-        )
+        self.arbiter.publish(sample(MotionSource.DS4, 10.0, 5.0, 10.0))
 
         with self.assertRaises(ValueError):
-            self.arbiter.publish(
-                sample(MotionSource.DS4, 20.0, 4.0, 10.0)
-            )
+            self.arbiter.publish(sample(MotionSource.DS4, 20.0, 4.0, 10.0))
 
     def test_out_of_envelope_source_command_is_rejected(self):
         with self.assertRaises(MotionLimitError):
-            self.arbiter.publish(
-                sample(MotionSource.WEB, 81.0, 1.0, 10.0)
-            )
+            self.arbiter.publish(sample(MotionSource.WEB, 81.0, 1.0, 10.0))
 
     def test_idle_cannot_be_published(self):
         with self.assertRaises(ValueError):
@@ -141,9 +119,7 @@ class CommandArbitrationTests(unittest.TestCase):
             sample(MotionSource.DS4, 10.0, 5.0, 5.0)
 
     def test_selected_command_reports_age(self):
-        self.arbiter.publish(
-            sample(MotionSource.DS4, 10.0, 2.5, 10.0)
-        )
+        self.arbiter.publish(sample(MotionSource.DS4, 10.0, 2.5, 10.0))
 
         selected = self.arbiter.select(4.0)
 

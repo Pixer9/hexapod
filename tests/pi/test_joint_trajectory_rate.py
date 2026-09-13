@@ -10,16 +10,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
 
-TRAJECTORY_CONFIG = (
-    REPO_ROOT / "config" / "control" / "joint-trajectory.json"
-)
+TRAJECTORY_CONFIG = REPO_ROOT / "config" / "control" / "joint-trajectory.json"
 MOTION_CONFIG = REPO_ROOT / "config" / "control" / "motion.json"
 RATE_CONFIG = REPO_ROOT / "config" / "control" / "rate-limit.json"
 ROBOT_CONFIG = REPO_ROOT / "config" / "robots" / "standard.json"
 GAIT_CONFIG = REPO_ROOT / "config" / "locomotion" / "tripod.json"
-LOCOMOTION_CONFIG = (
-    REPO_ROOT / "config" / "locomotion" / "controller.json"
-)
+LOCOMOTION_CONFIG = REPO_ROOT / "config" / "locomotion" / "controller.json"
 
 sys.path.insert(0, str(SRC))
 
@@ -219,14 +215,8 @@ class JointTrajectoryRateScalerTests(unittest.TestCase):
 
         step = scaler.step(target, 0.02)
 
-        applied = tuple(
-            new - old
-            for old, new in zip(initial, step.output_vector_deg)
-        )
-        requested = tuple(
-            new - old
-            for old, new in zip(initial, target)
-        )
+        applied = tuple(new - old for old, new in zip(initial, step.output_vector_deg))
+        requested = tuple(new - old for old, new in zip(initial, target))
 
         self.assertTrue(step.limited)
         for applied_delta, requested_delta in zip(applied, requested):
@@ -282,23 +272,14 @@ class JointTrajectoryRateScalerTests(unittest.TestCase):
 
     def test_applied_rate_never_exceeds_budget(self):
         scaler = self.make_scaler()
-        scaler.seed(
-            tuple(
-                -50.0 + index * 3.0
-                for index in range(LOGICAL_JOINT_COUNT)
-            )
-        )
-        target = tuple(
-            80.0 - index * 4.0
-            for index in range(LOGICAL_JOINT_COUNT)
-        )
+        scaler.seed(tuple(-50.0 + index * 3.0 for index in range(LOGICAL_JOINT_COUNT)))
+        target = tuple(80.0 - index * 4.0 for index in range(LOGICAL_JOINT_COUNT))
 
         previous = scaler.output_vector_deg
         step = scaler.step(target, 0.013)
 
         measured_peak = max(
-            abs(new - old) / 0.013
-            for old, new in zip(previous, step.output_vector_deg)
+            abs(new - old) / 0.013 for old, new in zip(previous, step.output_vector_deg)
         )
         self.assertLessEqual(measured_peak, 250.0 + 1e-9)
         self.assertAlmostEqual(
@@ -342,9 +323,7 @@ class JointTrajectoryRateScalerTests(unittest.TestCase):
         scaler = self.make_scaler()
 
         idle = locomotion.step(MotionCommand.zero(), 0.0)
-        idle_solution = kinematics.solve(
-            idle.gait_frame.foot_targets_body_mm
-        )
+        idle_solution = kinematics.solve(idle.gait_frame.foot_targets_body_mm)
         scaler.seed(idle_solution.logical_vector_deg)
 
         full_command = MotionCommand(

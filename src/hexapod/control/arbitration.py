@@ -43,9 +43,7 @@ def _finite_time(value: object, name: str) -> float:
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(
-            f"{name} must be a finite monotonic timestamp"
-        ) from exc
+        raise ValueError(f"{name} must be a finite monotonic timestamp") from exc
 
     if not math.isfinite(result):
         raise ValueError(f"{name} must be a finite monotonic timestamp")
@@ -111,9 +109,7 @@ class CommandArbiter:
 
         previous = self._latest.get(sample.source)
         if previous is not None and sample.received_at_s < previous.received_at_s:
-            raise ValueError(
-                f"stale {sample.source.value} command publication"
-            )
+            raise ValueError(f"stale {sample.source.value} command publication")
 
         self._latest[sample.source] = sample
 
@@ -125,9 +121,7 @@ class CommandArbiter:
     def select(self, now_s: float) -> SelectedMotionCommand:
         now = _finite_time(now_s, "now_s")
         candidates = [
-            sample
-            for sample in self._latest.values()
-            if sample.is_fresh(now)
+            sample for sample in self._latest.values() if sample.is_fresh(now)
         ]
 
         if not candidates:

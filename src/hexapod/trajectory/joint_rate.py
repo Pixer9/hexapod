@@ -51,51 +51,37 @@ class JointTrajectoryStep:
 
 def _positive_float(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise JointTrajectoryError(
-            f"{name} must be a finite number > 0"
-        )
+        raise JointTrajectoryError(f"{name} must be a finite number > 0")
 
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise JointTrajectoryError(
-            f"{name} must be a finite number > 0"
-        ) from exc
+        raise JointTrajectoryError(f"{name} must be a finite number > 0") from exc
 
     if not math.isfinite(result) or result <= 0.0:
-        raise JointTrajectoryError(
-            f"{name} must be a finite number > 0"
-        )
+        raise JointTrajectoryError(f"{name} must be a finite number > 0")
 
     return result
 
 
 def _finite_nonnegative(value: object, name: str) -> float:
     if isinstance(value, bool):
-        raise JointTrajectoryError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise JointTrajectoryError(f"{name} must be a finite number >= 0")
 
     try:
         result = float(value)
     except (TypeError, ValueError) as exc:
-        raise JointTrajectoryError(
-            f"{name} must be a finite number >= 0"
-        ) from exc
+        raise JointTrajectoryError(f"{name} must be a finite number >= 0") from exc
 
     if not math.isfinite(result) or result < 0.0:
-        raise JointTrajectoryError(
-            f"{name} must be a finite number >= 0"
-        )
+        raise JointTrajectoryError(f"{name} must be a finite number >= 0")
 
     return result
 
 
 def _nonempty_string(value: object, name: str) -> str:
     if not isinstance(value, str) or not value:
-        raise JointTrajectoryError(
-            f"{name} must be a non-empty string"
-        )
+        raise JointTrajectoryError(f"{name} must be a non-empty string")
     return value
 
 
@@ -109,16 +95,13 @@ def _normalize_vector(
         or len(vector) != LOGICAL_JOINT_COUNT
     ):
         raise JointTrajectoryError(
-            f"{name} must contain exactly "
-            f"{LOGICAL_JOINT_COUNT} joint angles"
+            f"{name} must contain exactly {LOGICAL_JOINT_COUNT} joint angles"
         )
 
     normalized: list[float] = []
     for index, value in enumerate(vector):
         if isinstance(value, bool):
-            raise JointTrajectoryError(
-                f"{name}[{index}] must be a finite number"
-            )
+            raise JointTrajectoryError(f"{name}[{index}] must be a finite number")
         try:
             number = float(value)
         except (TypeError, ValueError) as exc:
@@ -127,9 +110,7 @@ def _normalize_vector(
             ) from exc
 
         if not math.isfinite(number):
-            raise JointTrajectoryError(
-                f"{name}[{index}] must be a finite number"
-            )
+            raise JointTrajectoryError(f"{name}[{index}] must be a finite number")
         normalized.append(number)
 
     return tuple(normalized)
@@ -153,9 +134,7 @@ def parse_joint_trajectory_config(
     if not isinstance(units, dict):
         raise JointTrajectoryError("units must be an object")
     if units.get("joint_rate") != "degree_per_second":
-        raise JointTrajectoryError(
-            "units.joint_rate must be 'degree_per_second'"
-        )
+        raise JointTrajectoryError("units.joint_rate must be 'degree_per_second'")
 
     limits = data.get("limits")
     if not isinstance(limits, dict):
@@ -170,16 +149,14 @@ def parse_joint_trajectory_config(
     extra_root = set(data) - expected_root
     if extra_root:
         raise JointTrajectoryError(
-            "unsupported joint-trajectory config keys: "
-            + ", ".join(sorted(extra_root))
+            "unsupported joint-trajectory config keys: " + ", ".join(sorted(extra_root))
         )
 
     if set(units) != {"joint_rate"}:
         extra = set(units) - {"joint_rate"}
         if extra:
             raise JointTrajectoryError(
-                "unsupported joint-trajectory unit keys: "
-                + ", ".join(sorted(extra))
+                "unsupported joint-trajectory unit keys: " + ", ".join(sorted(extra))
             )
 
     expected_limits = {"max_joint_rate_deg_s"}
@@ -241,9 +218,7 @@ class JointTrajectoryRateScaler:
     @property
     def output_vector_deg(self) -> tuple[float, ...]:
         if self._output is None:
-            raise JointTrajectoryError(
-                "joint trajectory scaler is not initialized"
-            )
+            raise JointTrajectoryError("joint trajectory scaler is not initialized")
         return self._output
 
     def seed(

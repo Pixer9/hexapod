@@ -71,9 +71,7 @@ class MotionCommand:
     @property
     def is_zero(self) -> bool:
         return (
-            self.vx_mm_s == 0.0
-            and self.vy_mm_s == 0.0
-            and self.yaw_rate_deg_s == 0.0
+            self.vx_mm_s == 0.0 and self.vy_mm_s == 0.0 and self.yaw_rate_deg_s == 0.0
         )
 
 

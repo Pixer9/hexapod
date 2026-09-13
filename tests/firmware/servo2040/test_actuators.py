@@ -30,12 +30,24 @@ def safe_target():
     # Coxa 0 deg, femur 0 deg, tibia 10 deg for each leg.
     # 10 deg is the lower hard logical tibia limit in the migrated profile.
     return (
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
-        0, 0, 1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
+        0,
+        0,
+        1000,
     )
 
 
@@ -45,9 +57,7 @@ def qualified_profile(rate_cd_s=25000):
     for joint in data["joints"]:
         joint["max_rate_cd_s"] = rate_cd_s
 
-    return parse_profile_bytes(
-        json.dumps(data, separators=(",", ":")).encode("utf-8")
-    )
+    return parse_profile_bytes(json.dumps(data, separators=(",", ":")).encode("utf-8"))
 
 
 class PositionValidationTests(unittest.TestCase):
@@ -111,9 +121,9 @@ class MappingTests(unittest.TestCase):
 
     def test_direction_is_applied_in_servo_space(self):
         target = list(safe_target())
-        target[0] = 1000   # RF coxa direction -1
-        target[1] = 1000   # RF femur direction +1
-        target[2] = 2000   # RF tibia direction +1
+        target[0] = 1000  # RF coxa direction -1
+        target[1] = 1000  # RF femur direction +1
+        target[2] = 2000  # RF tibia direction +1
 
         servo = logical_to_servo_vector(self.profile, target)
 
@@ -137,18 +147,29 @@ class MappingTests(unittest.TestCase):
         self.assertEqual(
             channels,
             (
-                600, 4500, -3200,
-                800, 4000, -2500,
-                700, 4000, -2500,
-                600, 3100, -2900,
-                -400, 3700, -1900,
-                900, 4800, -3000,
+                600,
+                4500,
+                -3200,
+                800,
+                4000,
+                -2500,
+                700,
+                4000,
+                -2500,
+                600,
+                3100,
+                -2900,
+                -400,
+                3700,
+                -1900,
+                900,
+                4800,
+                -3000,
             ),
         )
 
 
 class RateTests(unittest.TestCase):
-
     def test_required_rate_uses_actual_dt_and_rounds_up(self):
         self.assertEqual(required_rate_cd_s(0, 500, 20), 25000)
         self.assertEqual(required_rate_cd_s(0, 500, 25), 20000)

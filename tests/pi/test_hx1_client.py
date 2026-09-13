@@ -11,16 +11,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
 
-HX1_CONFIG = (
-    REPO_ROOT / "config" / "hardware" / "servo2040.json"
-)
+HX1_CONFIG = REPO_ROOT / "config" / "hardware" / "servo2040.json"
 ACTUATOR_PROFILE = (
-    REPO_ROOT
-    / "firmware"
-    / "servo2040"
-    / "src"
-    / "config"
-    / "actuator-profile.json"
+    REPO_ROOT / "firmware" / "servo2040" / "src" / "config" / "actuator-profile.json"
 )
 
 sys.path.insert(0, str(SRC))
@@ -90,11 +83,7 @@ class HX1ClientCoreTests(unittest.TestCase):
             server_minor,
             "fw-1.0",
             "e661410403724132",
-            (
-                self.config.expected_profile_id
-                if profile_id is None
-                else profile_id
-            ),
+            (self.config.expected_profile_id if profile_id is None else profile_id),
             (
                 self.config.expected_profile_revision
                 if profile_revision is None
@@ -105,20 +94,14 @@ class HX1ClientCoreTests(unittest.TestCase):
                 if profile_hash is None
                 else profile_hash
             ),
-            (
-                self.config.joint_count
-                if joint_count is None
-                else joint_count
-            ),
+            (self.config.joint_count if joint_count is None else joint_count),
             "00000020",
             state,
         )
 
     def negotiate(self, client):
         hello = client.hello()
-        message = client.accept_frame(
-            self.info_frame(hello.seq)
-        )
+        message = client.accept_frame(self.info_frame(hello.seq))
         return hello, message
 
     def test_hello_uses_expected_profile_and_invalidates_old_authority(self):
@@ -150,9 +133,7 @@ class HX1ClientCoreTests(unittest.TestCase):
         client = self.make_client()
         hello = client.hello()
 
-        info = client.accept_frame(
-            self.info_frame(hello.seq)
-        )
+        info = client.accept_frame(self.info_frame(hello.seq))
 
         self.assertTrue(client.negotiated)
         self.assertEqual(client.session, "A1B2C3D4")
@@ -177,9 +158,7 @@ class HX1ClientCoreTests(unittest.TestCase):
         hello = client.hello()
 
         with self.assertRaises(HX1UnexpectedResponseError):
-            client.accept_frame(
-                self.info_frame(hello.seq + 1)
-            )
+            client.accept_frame(self.info_frame(hello.seq + 1))
 
     def test_peer_profile_mismatch_prevents_session(self):
         client = self.make_client()

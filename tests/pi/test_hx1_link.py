@@ -8,9 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
-HX1_CONFIG = (
-    REPO_ROOT / "config" / "hardware" / "servo2040.json"
-)
+HX1_CONFIG = REPO_ROOT / "config" / "hardware" / "servo2040.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.hx1 import (  # noqa: E402
@@ -52,11 +50,7 @@ class HX1LinkTests(unittest.TestCase):
 
     def make_link(self, transport=None):
         client = HX1ClientCore(self.config)
-        transport = (
-            FakeHX1Transport()
-            if transport is None
-            else transport
-        )
+        transport = FakeHX1Transport() if transport is None else transport
         return HX1Link(client, transport)
 
     def info_frame(
@@ -73,11 +67,7 @@ class HX1LinkTests(unittest.TestCase):
             1,
             "fw-1.0",
             "e661410403724132",
-            (
-                self.config.expected_profile_id
-                if profile_id is None
-                else profile_id
-            ),
+            (self.config.expected_profile_id if profile_id is None else profile_id),
             self.config.expected_profile_revision,
             self.config.expected_profile_sha256,
             self.config.joint_count,
@@ -92,9 +82,7 @@ class HX1LinkTests(unittest.TestCase):
         hello = link.client.hello()
         link.send(hello)
         link.transport.take_writes()
-        link.transport.inject_read_data(
-            self.info_frame(hello.seq)
-        )
+        link.transport.inject_read_data(self.info_frame(hello.seq))
 
         messages = link.poll()
         self.assertEqual(len(messages), 1)
@@ -203,9 +191,7 @@ class HX1LinkTests(unittest.TestCase):
         link = self.make_link()
         link.open()
 
-        raw = bytearray(
-            encode_frame(1, "EVENT", "BOOT", "ready")
-        )
+        raw = bytearray(encode_frame(1, "EVENT", "BOOT", "ready"))
         raw[-3] = ord("0")
         link.transport.inject_read_data(raw)
 
@@ -218,9 +204,7 @@ class HX1LinkTests(unittest.TestCase):
 
         # ACK requires REF_SEQ and COMMAND. Framing/CRC are valid, but the
         # message schema is incomplete.
-        link.transport.inject_read_data(
-            encode_frame(1, "ACK", 4)
-        )
+        link.transport.inject_read_data(encode_frame(1, "ACK", 4))
 
         self.assertEqual(link.poll(), ())
         self.assertEqual(link.message_errors, 1)

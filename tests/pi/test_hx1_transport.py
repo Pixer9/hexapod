@@ -8,9 +8,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
-HX1_CONFIG = (
-    REPO_ROOT / "config" / "hardware" / "servo2040.json"
-)
+HX1_CONFIG = REPO_ROOT / "config" / "hardware" / "servo2040.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.hx1 import (  # noqa: E402
@@ -161,9 +159,7 @@ class HX1FakeTransportIntegrationTests(unittest.TestCase):
         complete = []
 
         while transport.pending_read_bytes:
-            complete.extend(
-                framer.feed(transport.read(7))
-            )
+            complete.extend(framer.feed(transport.read(7)))
 
         self.assertEqual(complete, [info])
 
