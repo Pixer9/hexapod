@@ -455,15 +455,17 @@ class ProtocolContainmentTests(unittest.TestCase):
 
 
 class MainFailSafeTests(unittest.TestCase):
-    def test_keyboard_interrupt_is_disabled_for_usb_protocol_runtime(self):
+    def test_ctrl_c_is_reserved_as_maintenance_escape(self):
         calls = []
 
         class FakeMicroPython:
             def kbd_intr(self, value):
                 calls.append(value)
 
-        firmware_main._disable_keyboard_interrupt(FakeMicroPython())
-        self.assertEqual(calls, [-1])
+        firmware_main._enable_maintenance_keyboard_interrupt(
+            FakeMicroPython()
+        )
+        self.assertEqual(calls, [3])
 
     def test_build_failure_after_hardware_acquisition_disables_before_reraising(self):
         hardware = FakeHardware()

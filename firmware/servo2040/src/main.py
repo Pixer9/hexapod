@@ -8,7 +8,7 @@ The module is safe to import under CPython for host-side tests. Board-specific
 imports occur only while building the production application.
 """
 
-FIRMWARE_VERSION = "0.1.0-rc1"
+FIRMWARE_VERSION = "0.1.0-rc2"
 PROFILE_PATH = "config/actuator-profile.json"
 
 STATUS_RATE_HZ = 10
@@ -266,9 +266,9 @@ def _startup_tick(time_module):
     return int(time_module.ticks_ms())
 
 
-def _disable_keyboard_interrupt(micropython_module):
-    """Reserve USB CDC input for HX1 instead of REPL Ctrl-C handling."""
-    micropython_module.kbd_intr(-1)
+def _enable_maintenance_keyboard_interrupt(micropython_module):
+    """Reserve Ctrl-C as a fail-safe maintenance escape from HX1 runtime."""
+    micropython_module.kbd_intr(3)
 
 
 def _best_effort_disable(hardware):
@@ -292,7 +292,7 @@ def build_application():
     import machine
     import micropython
 
-    _disable_keyboard_interrupt(micropython)
+    _enable_maintenance_keyboard_interrupt(micropython)
 
     try:
         import ubinascii
