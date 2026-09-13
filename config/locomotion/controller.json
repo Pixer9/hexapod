@@ -1,0 +1,6 @@
+{
+    "schema_version": 1,
+    "controller_id": "locomotion-controller-v1",
+    "start_blend_s": 0.45,
+    "stop_blend_s": 0.45
+}
