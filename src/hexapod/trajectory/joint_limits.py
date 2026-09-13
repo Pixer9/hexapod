@@ -18,6 +18,8 @@ from pathlib import Path
 
 from hexapod.model import CANONICAL_LEG_ORDER
 
+from .._numeric import float_from_unknown
+
 JOINTS_PER_LEG: tuple[str, ...] = ("coxa", "femur", "tibia")
 CANONICAL_JOINT_NAMES: tuple[str, ...] = tuple(
     f"{leg.lower()}_{joint}" for leg in CANONICAL_LEG_ORDER for joint in JOINTS_PER_LEG
@@ -99,7 +101,7 @@ def _finite(value: object, name: str) -> float:
     if isinstance(value, bool):
         raise JointSoftLimitConfigError(f"{name} must be a finite number")
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise JointSoftLimitConfigError(f"{name} must be a finite number") from exc
     if not math.isfinite(result):

@@ -32,6 +32,7 @@ from hexapod.model import (
     leg_to_body,
 )
 
+from .._numeric import float_from_unknown
 from .config import TripodGaitConfig
 
 TRIPOD_A: tuple[str, ...] = ("RF", "RB", "LM")
@@ -82,7 +83,7 @@ def _finite(value: object, name: str) -> float:
     if isinstance(value, bool):
         raise GaitError(f"{name} must be a finite number")
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise GaitError(f"{name} must be a finite number") from exc
     if not math.isfinite(result):

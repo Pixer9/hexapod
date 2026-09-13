@@ -20,6 +20,7 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from .._numeric import float_from_unknown
 from .command import MotionCommand, MotionLimits
 
 
@@ -42,7 +43,7 @@ def _positive_float(value: object, name: str) -> float:
         raise CommandRateLimitError(f"{name} must be a finite number > 0")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise CommandRateLimitError(f"{name} must be a finite number > 0") from exc
 
@@ -57,7 +58,7 @@ def _finite_nonnegative(value: object, name: str) -> float:
         raise CommandRateLimitError(f"{name} must be a finite number >= 0")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise CommandRateLimitError(f"{name} must be a finite number >= 0") from exc
 

@@ -7,6 +7,7 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from .._numeric import float_from_unknown
 from .protocol import PROTOCOL_MINOR
 
 
@@ -54,7 +55,7 @@ def _positive_float(value: object, name: str) -> float:
     if isinstance(value, bool):
         raise HX1ConfigError(f"{name} must be a finite number > 0")
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise HX1ConfigError(f"{name} must be a finite number > 0") from exc
     if not math.isfinite(result) or result <= 0.0:

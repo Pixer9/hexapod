@@ -6,6 +6,7 @@ import math
 from dataclasses import dataclass
 from typing import TypeAlias
 
+from .._numeric import float_from_unknown
 from .protocol import UINT32_MAX, HX1Frame, encode_frame
 
 JOINT_COUNT = 18
@@ -221,7 +222,7 @@ def degrees_to_centidegrees(value_deg: object) -> int:
     if isinstance(value_deg, bool):
         raise HX1MessageError("joint angle must be a finite number")
     try:
-        value = float(value_deg)
+        value = float_from_unknown(value_deg)
     except (TypeError, ValueError) as exc:
         raise HX1MessageError("joint angle must be a finite number") from exc
     if not math.isfinite(value):

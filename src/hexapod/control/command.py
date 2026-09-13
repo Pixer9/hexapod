@@ -15,6 +15,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from .._numeric import float_from_unknown
+
 
 class MotionCommandError(ValueError):
     """Base class for invalid robot motion commands."""
@@ -29,7 +31,7 @@ def _finite_float(value: object, name: str) -> float:
         raise MotionCommandError(f"{name} must be a finite number")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise MotionCommandError(f"{name} must be a finite number") from exc
 

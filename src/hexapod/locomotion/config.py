@@ -7,6 +7,8 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
+from .._numeric import float_from_unknown
+
 
 class GaitConfigError(ValueError):
     """Tripod gait configuration is malformed or unsupported."""
@@ -16,7 +18,7 @@ def _finite_float(value: object, name: str) -> float:
     if isinstance(value, bool):
         raise GaitConfigError(f"{name} must be a finite number")
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise GaitConfigError(f"{name} must be a finite number") from exc
     if not math.isfinite(result):

@@ -27,6 +27,8 @@ from typing import Mapping
 
 from hexapod.control import CommandSample, MotionCommand, MotionLimits, MotionSource
 
+from .._numeric import float_from_unknown
+
 
 class DS4ConfigError(ValueError):
     """DS4 configuration is malformed or unsupported."""
@@ -91,7 +93,7 @@ def _finite_float(value: object, name: str) -> float:
         raise DS4ConfigError(f"{name} must be a finite number")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise DS4ConfigError(f"{name} must be a finite number") from exc
 

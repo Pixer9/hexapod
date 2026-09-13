@@ -15,6 +15,7 @@ from enum import Enum
 
 from hexapod.control import MotionCommand
 
+from .._numeric import float_from_unknown
 from .controller_config import LocomotionControllerConfig
 from .tripod import GaitFrame, TripodGait
 
@@ -49,7 +50,7 @@ def _finite_nonnegative(value: object, name: str) -> float:
         raise LocomotionControllerError(f"{name} must be a finite number >= 0")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise LocomotionControllerError(f"{name} must be a finite number >= 0") from exc
 

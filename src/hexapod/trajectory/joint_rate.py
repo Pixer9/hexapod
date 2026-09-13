@@ -23,6 +23,8 @@ from pathlib import Path
 
 from hexapod.kinematics import LOGICAL_JOINT_COUNT
 
+from .._numeric import float_from_unknown
+
 
 class JointTrajectoryError(ValueError):
     """Invalid joint-trajectory configuration, state, or request."""
@@ -54,7 +56,7 @@ def _positive_float(value: object, name: str) -> float:
         raise JointTrajectoryError(f"{name} must be a finite number > 0")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise JointTrajectoryError(f"{name} must be a finite number > 0") from exc
 
@@ -69,7 +71,7 @@ def _finite_nonnegative(value: object, name: str) -> float:
         raise JointTrajectoryError(f"{name} must be a finite number >= 0")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise JointTrajectoryError(f"{name} must be a finite number >= 0") from exc
 

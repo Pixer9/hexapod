@@ -18,6 +18,7 @@ import math
 from dataclasses import dataclass
 from enum import Enum
 
+from .._numeric import float_from_unknown
 from .command import MotionCommand, MotionLimits
 
 
@@ -41,7 +42,7 @@ def _finite_time(value: object, name: str) -> float:
         raise ValueError(f"{name} must be a finite monotonic timestamp")
 
     try:
-        result = float(value)
+        result = float_from_unknown(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{name} must be a finite monotonic timestamp") from exc
 
