@@ -197,8 +197,13 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual(runtime.ticks, [100])
         self.assertGreater(app.tx_errors, 0)
 
-    def test_production_loop_has_no_deliberate_millisecond_throttle(self):
-        self.assertEqual(firmware_main.LOOP_SLEEP_MS, 0)
+
+class ReleaseCandidateTests(unittest.TestCase):
+    def test_firmware_version_is_rc4(self):
+        self.assertEqual(firmware_main.FIRMWARE_VERSION, "0.1.0-rc4")
+
+    def test_scheduler_keeps_one_millisecond_idle(self):
+        self.assertEqual(firmware_main.LOOP_SLEEP_MS, 1)
 
 
 class DiagnosticFallbackTests(unittest.TestCase):

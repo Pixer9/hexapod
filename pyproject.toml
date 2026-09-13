@@ -39,6 +39,7 @@ line-length = 88
 target-version = "py313"
 extend-exclude = [
     "firmware/servo2040/legacy-backup",
+    "firmware/servo2040/src/lib/usb",
 ]
 
 [tool.ruff.lint]

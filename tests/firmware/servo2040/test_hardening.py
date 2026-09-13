@@ -486,13 +486,13 @@ class MainFailSafeTests(unittest.TestCase):
         previous_micropython = sys.modules.get("micropython")
 
         original_hardware_factory = hardware_module.create_servo2040_hardware
-        original_transport_factory = transport_module.create_usb_cdc_transport
+        original_transport_factory = transport_module.create_buffered_usb_cdc_transport
 
         def fail_transport():
             raise KeyboardInterrupt()
 
         hardware_module.create_servo2040_hardware = lambda: hardware
-        transport_module.create_usb_cdc_transport = fail_transport
+        transport_module.create_buffered_usb_cdc_transport = fail_transport
         sys.modules["machine"] = fake_machine
         sys.modules["micropython"] = fake_micropython
 
@@ -501,7 +501,9 @@ class MainFailSafeTests(unittest.TestCase):
                 firmware_main.build_application()
         finally:
             hardware_module.create_servo2040_hardware = original_hardware_factory
-            transport_module.create_usb_cdc_transport = original_transport_factory
+            transport_module.create_buffered_usb_cdc_transport = (
+                original_transport_factory
+            )
 
             if had_machine:
                 sys.modules["machine"] = previous_machine

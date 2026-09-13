@@ -13,11 +13,7 @@ PROFILE_PATH = "config/actuator-profile.json"
 
 STATUS_RATE_HZ = 10
 STATUS_PERIOD_MS = 100
-# The RP2040 USB-CDC stdin path may expose only one newly readable character
-# per poll cycle under sustained host traffic. Do not impose an additional
-# millisecond delay between bounded scheduler iterations; USB RX work is
-# already capped by USBTextTransport.rx_budget_bytes.
-LOOP_SLEEP_MS = 0
+LOOP_SLEEP_MS = 1
 
 # Protocol-v1 release candidate currently advertises no optional sensor
 # capability until its acquisition path is implemented and tested.
@@ -316,7 +312,7 @@ def build_application():
     from hexapod_mcu.runtime import RuntimeCoordinator
     from hexapod_mcu.state_machine import RuntimeStateMachine
     from hexapod_mcu.telemetry import TelemetryEncoder
-    from hexapod_mcu.transport import create_usb_cdc_transport
+    from hexapod_mcu.transport import create_buffered_usb_cdc_transport
 
     clock = MicroPythonClock(time)
 
@@ -333,7 +329,10 @@ def build_application():
         except Exception:
             profile = InvalidProfile()
 
-        transport = create_usb_cdc_transport()
+        # Reconfigure USB as a composite device: the built-in CDC interface is
+        # preserved for REPL/mpremote and a second buffered CDC interface is
+        # dedicated to HX1 robot control.
+        transport = create_buffered_usb_cdc_transport()
 
         mcu_id = _mcu_identity(machine, ubinascii)
         unique_id = machine.unique_id()

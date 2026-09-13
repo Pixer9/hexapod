@@ -6,14 +6,14 @@ repos:
         entry: python -m ruff format
         language: system
         types: [python]
-        exclude: ^firmware/servo2040/legacy-backup/
+        exclude: ^firmware/servo2040/(legacy-backup/|src/lib/usb/)
 
       - id: ruff-check
         name: Ruff lint
         entry: python -m ruff check --fix
         language: system
         types: [python]
-        exclude: ^firmware/servo2040/legacy-backup/
+        exclude: ^firmware/servo2040/(legacy-backup/|src/lib/usb/)
 
       - id: git-diff-check
         name: Git whitespace check

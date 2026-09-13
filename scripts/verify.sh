@@ -37,7 +37,8 @@ echo
 
 mapfile -t PYTHON_FILES < <(
     git ls-files '*.py' |
-        grep -v '^firmware/servo2040/legacy-backup/'
+        grep -v '^firmware/servo2040/legacy-backup/' |
+        grep -v '^firmware/servo2040/src/lib/usb/'
 )
 
 if [[ ${#PYTHON_FILES[@]} -eq 0 ]]; then
