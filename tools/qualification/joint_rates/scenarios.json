@@ -1,0 +1,258 @@
+{
+    "qualification_version": 1,
+    "description": "Initial software-only rate baseline using the proven V4 motion envelope at the planned 50 Hz Pi target rate.",
+    "control_hz": 50.0,
+    "scenario_duration_s": 4.0,
+    "geometry": {
+        "coxa_mm": 41.0,
+        "femur_mm": 116.0,
+        "tibia_mm": 183.0
+    },
+    "gait": {
+        "cycle_hz": 1.0,
+        "step_height_mm": 70.0,
+        "stance_z_mm": -135.0,
+        "duty": 0.5,
+        "max_step_mm": 50.0,
+        "start_blend_s": 0.45
+    },
+    "command_envelope": {
+        "max_vx_mm_s": 80.0,
+        "max_vy_mm_s": 60.0,
+        "max_yaw_deg_s": 90.0
+    },
+    "candidate_headroom_multiplier": 1.5,
+    "candidate_rounding_cd_s": 1000,
+    "scenarios": [
+        {
+            "name": "forward_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 80.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "reverse_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": -80.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "left_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 0.0,
+                    "vy": 60.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "right_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 0.0,
+                    "vy": -60.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "yaw_ccw_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 0.0,
+                    "vy": 0.0,
+                    "yaw": 90.0
+                }
+            ]
+        },
+        {
+            "name": "yaw_cw_max",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 0.0,
+                    "vy": 0.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_fwd_left_ccw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 80.0,
+                    "vy": 60.0,
+                    "yaw": 90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_fwd_left_cw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 80.0,
+                    "vy": 60.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_fwd_right_ccw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 80.0,
+                    "vy": -60.0,
+                    "yaw": 90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_fwd_right_cw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": 80.0,
+                    "vy": -60.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_rev_left_ccw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": -80.0,
+                    "vy": 60.0,
+                    "yaw": 90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_rev_left_cw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": -80.0,
+                    "vy": 60.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_rev_right_ccw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": -80.0,
+                    "vy": -60.0,
+                    "yaw": 90.0
+                }
+            ]
+        },
+        {
+            "name": "corner_rev_right_cw",
+            "segments": [
+                {
+                    "fraction": 1.0,
+                    "vx": -80.0,
+                    "vy": -60.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "forward_to_reverse",
+            "segments": [
+                {
+                    "fraction": 0.5,
+                    "vx": 80.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                },
+                {
+                    "fraction": 0.5,
+                    "vx": -80.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "left_to_right",
+            "segments": [
+                {
+                    "fraction": 0.5,
+                    "vx": 0.0,
+                    "vy": 60.0,
+                    "yaw": 0.0
+                },
+                {
+                    "fraction": 0.5,
+                    "vx": 0.0,
+                    "vy": -60.0,
+                    "yaw": 0.0
+                }
+            ]
+        },
+        {
+            "name": "yaw_reversal",
+            "segments": [
+                {
+                    "fraction": 0.5,
+                    "vx": 0.0,
+                    "vy": 0.0,
+                    "yaw": 90.0
+                },
+                {
+                    "fraction": 0.5,
+                    "vx": 0.0,
+                    "vy": 0.0,
+                    "yaw": -90.0
+                }
+            ]
+        },
+        {
+            "name": "start_stop_forward",
+            "segments": [
+                {
+                    "fraction": 0.5,
+                    "vx": 80.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                },
+                {
+                    "fraction": 0.5,
+                    "vx": 0.0,
+                    "vy": 0.0,
+                    "yaw": 0.0
+                }
+            ]
+        }
+    ],
+    "command_smoothing": {
+        "tau_v_s": 0.18,
+        "tau_yaw_s": 0.16,
+        "accel_v_mm_s2": 260.0,
+        "decel_v_mm_s2": 520.0,
+        "accel_yaw_deg_s2": 280.0,
+        "decel_yaw_deg_s2": 700.0
+    }
+}
