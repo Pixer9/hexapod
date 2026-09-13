@@ -1,0 +1,36 @@
+{
+    "schema_version": 1,
+    "adapter_id": "dualshock4-evdev-v1",
+    "device": {
+        "path": null,
+        "name_contains": [
+            "Wireless Controller",
+            "DUALSHOCK 4"
+        ]
+    },
+    "axis_processing": {
+        "deadzone": 0.1,
+        "expo": 0.35
+    },
+    "command_ttl_s": 0.25,
+    "start_motion_enabled": false,
+    "axes": {
+        "vx": {
+            "code": "ABS_Y",
+            "invert": false
+        },
+        "vy": {
+            "code": "ABS_X",
+            "invert": true
+        },
+        "yaw_rate": {
+            "code": "ABS_RX",
+            "invert": true
+        }
+    },
+    "buttons": {
+        "toggle_motion_enabled": "BTN_START",
+        "estop": "BTN_MODE",
+        "clear_estop_request": "BTN_SELECT"
+    }
+}
