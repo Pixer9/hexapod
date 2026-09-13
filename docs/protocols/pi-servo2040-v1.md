@@ -2,7 +2,7 @@
 
 **Status:** Accepted for implementation  
 **Protocol major:** 1  
-**Protocol minor:** 0  
+**Protocol minor:** 1  
 **Date:** 2026-09-12
 
 ## 1. Purpose
@@ -674,7 +674,7 @@ MCU → Pi
 Schema:
 
 ```text
-HX1|SEQ|STATUS|SESSION|STATE|FAULT|LAST_TARGET_SEQ|TARGET_AGE_MS|HEARTBEAT_AGE_MS|FOOT_MASK|BUS_MV|BUS_MA|UPTIME_MS|J0|J1|...|J17|CRC16
+HX1|SEQ|STATUS|SESSION|STATE|FAULT|LAST_TARGET_SEQ|TARGET_AGE_MS|HEARTBEAT_AGE_MS|FOOT_MASK|BUS_MV|BUS_MA|UPTIME_MS|COMMAND_VALID|J0|J1|...|J17|CRC16
 ```
 
 Fields:
@@ -691,7 +691,14 @@ Fields:
 | `BUS_MV` | Millivolts, or `-1` if unsupported |
 | `BUS_MA` | Milliamps, or `-1` if unsupported |
 | `UPTIME_MS` | MCU monotonic uptime |
+| `COMMAND_VALID` | `1` when `J0...J17` contain a meaningful commanded vector; `0` when they are placeholders |
 | `J0...J17` | Current **commanded** logical joint vector |
+
+When `COMMAND_VALID` is `0`, `J0...J17` are transmitted as zero and MUST NOT
+be interpreted as a commanded pose.
+
+`COMMAND_VALID` describes the validity of the reported vector only. It does not
+indicate that PWM is enabled or that the vector has current movement authority.
 
 The joint vector is commanded state, not measured joint position.
 
