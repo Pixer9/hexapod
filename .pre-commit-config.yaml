@@ -1,0 +1,22 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: Ruff format
+        entry: python -m ruff format
+        language: system
+        types: [python]
+        exclude: ^firmware/servo2040/legacy-backup/
+
+      - id: ruff-check
+        name: Ruff lint
+        entry: python -m ruff check --fix
+        language: system
+        types: [python]
+        exclude: ^firmware/servo2040/legacy-backup/
+
+      - id: git-diff-check
+        name: Git whitespace check
+        entry: git diff --cached --check
+        language: system
+        pass_filenames: false
