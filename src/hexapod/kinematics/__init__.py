@@ -7,11 +7,27 @@ from .leg import (
     leg_fk,
     leg_ik,
 )
+from .robot import (
+    FootTargetSetError,
+    JOINTS_PER_LEG,
+    LOGICAL_JOINT_COUNT,
+    LegSolveError,
+    RobotJointSolution,
+    RobotKinematics,
+    WholeBodyKinematicsError,
+)
 
 __all__ = [
+    "FootTargetSetError",
+    "JOINTS_PER_LEG",
     "JointAngles",
     "KinematicsError",
+    "LOGICAL_JOINT_COUNT",
+    "LegSolveError",
+    "RobotJointSolution",
+    "RobotKinematics",
     "UnreachableTargetError",
+    "WholeBodyKinematicsError",
     "leg_fk",
     "leg_ik",
 ]
