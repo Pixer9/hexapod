@@ -33,7 +33,10 @@ class ServoOutputHardware:
     def __init__(self, cluster, joint_count=JOINT_COUNT):
         self._cluster = cluster
         self._joint_count = int(joint_count)
-        self._enabled = False
+
+        # ServoCluster construction alone does not prove the electrical state.
+        # Only a successful force_disabled() establishes known-disabled PWM.
+        self._enabled = None
         self._last_channel_target_cd = None
 
         count = int(self._cluster.count())
@@ -211,6 +214,43 @@ class ServoOutputHardware:
             raise IndexError("channel out of range")
 
 
+class DisableOnlyHardware:
+    """Retain ServoCluster disable authority when full adapter init fails."""
+
+    def __init__(self, cluster, reason):
+        self._cluster = cluster
+        self.reason = str(reason)
+        self._enabled = None
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @property
+    def last_channel_target_cd(self):
+        return None
+
+    def force_disabled(self):
+        try:
+            self._cluster.disable_all(load=True)
+        except Exception as exc:
+            self._enabled = None
+            raise HardwareError(
+                "failed to disable retained ServoCluster: %s" % exc
+            )
+
+        self._enabled = False
+
+    def require_profile_compatible(self, profile):
+        raise HardwareCompatibilityError(self.reason)
+
+    def enable_at_target(self, target):
+        raise HardwareStateError(self.reason)
+
+    def apply_target(self, target):
+        raise HardwareStateError(self.reason)
+
+
 def create_servo2040_hardware():
     """Create the real Pimoroni Servo 2040 output adapter.
 
@@ -237,6 +277,35 @@ def create_servo2040_hardware():
     except Exception as exc:
         raise HardwareError("failed to create ServoCluster: %s" % exc)
 
-    hardware = ServoOutputHardware(cluster)
-    hardware.force_disabled()
+    try:
+        hardware = ServoOutputHardware(cluster)
+    except Exception as exc:
+        # A physical cluster exists. Keep a disable-capable handle instead of
+        # discarding it just because the full output adapter is incompatible.
+        hardware = DisableOnlyHardware(
+            cluster,
+            "ServoOutputHardware initialization failed: %s" % exc,
+        )
+    except BaseException:
+        # Preserve process-level exceptions, but do not abandon the cluster
+        # without one best-effort raw disable first.
+        try:
+            cluster.disable_all(load=True)
+        except BaseException:
+            pass
+        raise
+
+    try:
+        hardware.force_disabled()
+    except HardwareError:
+        # Keep the real/disable-only adapter in UNKNOWN state. Runtime self-test
+        # immediately retries and then keeps retrying while faulted if needed.
+        pass
+    except BaseException:
+        try:
+            cluster.disable_all(load=True)
+        except BaseException:
+            pass
+        raise
+
     return hardware

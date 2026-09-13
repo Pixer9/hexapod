@@ -7,6 +7,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
+from types import ModuleType
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIRMWARE_SRC = REPO_ROOT / "firmware" / "servo2040" / "src"
@@ -15,6 +16,8 @@ sys.path.insert(0, str(FIRMWARE_SRC))
 
 firmware_main = importlib.import_module("main")
 
+import hexapod_mcu.hardware as hardware_module  # noqa: E402
+import hexapod_mcu.transport as transport_module  # noqa: E402
 from hexapod_mcu.constants import (  # noqa: E402
     JOINT_COUNT,
     LINK_TIMEOUT_MS,
@@ -220,6 +223,7 @@ class HardwareTruthfulnessTests(unittest.TestCase):
     def test_failed_disable_marks_output_state_unknown(self):
         cluster = MinimalCluster()
         hardware = ServoOutputHardware(cluster)
+        hardware.force_disabled()
         target = (0,) * 18
         hardware.enable_at_target(target)
         self.assertIs(hardware.enabled, True)
@@ -234,6 +238,7 @@ class HardwareTruthfulnessTests(unittest.TestCase):
     def test_failed_commit_and_failed_emergency_disable_marks_unknown(self):
         cluster = MinimalCluster()
         hardware = ServoOutputHardware(cluster)
+        hardware.force_disabled()
         hardware.enable_at_target((0,) * 18)
 
         cluster.fail_value_channel = 5
@@ -244,6 +249,25 @@ class HardwareTruthfulnessTests(unittest.TestCase):
 
         self.assertIsNone(hardware.enabled)
         self.assertEqual(hardware.last_channel_target_cd, (0,) * 18)
+
+    def test_self_test_establishes_known_disabled_from_initial_unknown(self):
+        profile = qualified_profile()
+        sm = RuntimeStateMachine()
+        cluster = MinimalCluster()
+        hardware = ServoOutputHardware(cluster)
+        tx = TelemetryEncoder(profile, "0.1.0-rc1", "mcu")
+        runtime = RuntimeCoordinator(
+            profile=profile,
+            state_machine=sm,
+            hardware=hardware,
+            telemetry=tx,
+            session_factory=lambda: SESSION_INT,
+        )
+
+        self.assertIsNone(hardware.enabled)
+        self.assertTrue(runtime.perform_self_test(0))
+        self.assertFalse(hardware.enabled)
+        self.assertEqual(sm.state, State.DISARMED)
 
     def test_runtime_retries_disable_when_output_state_is_unknown(self):
         runtime, sm, hw = make_runtime()
@@ -440,6 +464,49 @@ class MainFailSafeTests(unittest.TestCase):
 
         firmware_main._disable_keyboard_interrupt(FakeMicroPython())
         self.assertEqual(calls, [-1])
+
+    def test_build_failure_after_hardware_acquisition_disables_before_reraising(self):
+        hardware = FakeHardware()
+
+        fake_machine = ModuleType("machine")
+        fake_micropython = ModuleType("micropython")
+        fake_micropython.kbd_intr = lambda value: None
+
+        had_machine = "machine" in sys.modules
+        previous_machine = sys.modules.get("machine")
+        had_micropython = "micropython" in sys.modules
+        previous_micropython = sys.modules.get("micropython")
+
+        original_hardware_factory = hardware_module.create_servo2040_hardware
+        original_transport_factory = transport_module.create_usb_cdc_transport
+
+        def fail_transport():
+            raise KeyboardInterrupt()
+
+        hardware_module.create_servo2040_hardware = lambda: hardware
+        transport_module.create_usb_cdc_transport = fail_transport
+        sys.modules["machine"] = fake_machine
+        sys.modules["micropython"] = fake_micropython
+
+        try:
+            with self.assertRaises(KeyboardInterrupt):
+                firmware_main.build_application()
+        finally:
+            hardware_module.create_servo2040_hardware = original_hardware_factory
+            transport_module.create_usb_cdc_transport = original_transport_factory
+
+            if had_machine:
+                sys.modules["machine"] = previous_machine
+            else:
+                sys.modules.pop("machine", None)
+
+            if had_micropython:
+                sys.modules["micropython"] = previous_micropython
+            else:
+                sys.modules.pop("micropython", None)
+
+        self.assertEqual(hardware.calls, [("disable",)])
+        self.assertFalse(hardware.enabled)
 
     def test_main_finally_disables_hardware_on_keyboard_interrupt(self):
         class Hardware:

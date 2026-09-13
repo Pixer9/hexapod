@@ -6,7 +6,7 @@ import json
 import sys
 import unittest
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIRMWARE_SRC = REPO_ROOT / "firmware" / "servo2040" / "src"
@@ -18,6 +18,7 @@ from hexapod_mcu.hardware import (  # noqa: E402
     HardwareError,
     HardwareStateError,
     ServoOutputHardware,
+    create_servo2040_hardware,
 )
 
 
@@ -30,6 +31,7 @@ class FakeServoCluster:
         self.shadow = [None] * count
         self.active = [None] * count
         self.fail_on_channel = None
+        self.fail_disable = False
 
     def count(self):
         return self._count
@@ -54,6 +56,8 @@ class FakeServoCluster:
 
     def disable_all(self, load=True):
         self.calls.append(("disable_all", bool(load)))
+        if self.fail_disable:
+            raise RuntimeError("injected disable failure")
         self.shadow = [None] * self._count
         if load:
             self.active = [None] * self._count
@@ -118,11 +122,77 @@ class CompatibilityTests(unittest.TestCase):
         self.assertTrue(hardware.require_profile_compatible(clipped_profile_view()))
 
 
+class FactoryTests(unittest.TestCase):
+    def _create_with_cluster(self, cluster):
+        fake_servo = ModuleType("servo")
+        fake_servo.ServoCluster = lambda **kwargs: cluster
+        fake_servo.servo2040 = SimpleNamespace(
+            SERVO_1=1,
+            SERVO_18=18,
+        )
+
+        had_servo = "servo" in sys.modules
+        previous_servo = sys.modules.get("servo")
+        sys.modules["servo"] = fake_servo
+        try:
+            return create_servo2040_hardware()
+        finally:
+            if had_servo:
+                sys.modules["servo"] = previous_servo
+            else:
+                sys.modules.pop("servo", None)
+
+    def test_factory_retains_adapter_after_initial_disable_failure(self):
+        cluster = FakeServoCluster()
+        cluster.fail_disable = True
+
+        hardware = self._create_with_cluster(cluster)
+
+        self.assertIsNone(hardware.enabled)
+        self.assertEqual(cluster.calls, [("disable_all", True)])
+
+        cluster.fail_disable = False
+        hardware.force_disabled()
+        self.assertFalse(hardware.enabled)
+
+    def test_factory_retains_disable_authority_if_full_adapter_init_fails(self):
+        cluster = FakeServoCluster(count=17)
+
+        hardware = self._create_with_cluster(cluster)
+
+        self.assertFalse(hardware.enabled)
+        with self.assertRaises(HardwareCompatibilityError):
+            hardware.require_profile_compatible(load_profile_view())
+        self.assertEqual(cluster.calls, [("disable_all", True)])
+
+    def test_disable_only_fallback_recovers_from_initial_disable_failure(self):
+        cluster = FakeServoCluster(count=17)
+        cluster.fail_disable = True
+
+        hardware = self._create_with_cluster(cluster)
+
+        self.assertIsNone(hardware.enabled)
+        cluster.fail_disable = False
+        hardware.force_disabled()
+        self.assertFalse(hardware.enabled)
+
+
 class OutputTests(unittest.TestCase):
     def setUp(self):
         self.cluster = FakeServoCluster()
         self.hardware = ServoOutputHardware(self.cluster)
         self.target = safe_channel_target()
+        self.hardware.force_disabled()
+        self.cluster.calls.clear()
+
+    def test_new_adapter_starts_unknown_until_disable_commits(self):
+        cluster = FakeServoCluster()
+        hardware = ServoOutputHardware(cluster)
+
+        self.assertIsNone(hardware.enabled)
+        with self.assertRaises(HardwareStateError):
+            hardware.enable_at_target(self.target)
+        self.assertEqual(cluster.calls, [])
 
     def test_force_disabled_commits_disable(self):
         self.hardware.force_disabled()

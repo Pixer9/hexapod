@@ -271,6 +271,17 @@ def _disable_keyboard_interrupt(micropython_module):
     micropython_module.kbd_intr(-1)
 
 
+def _best_effort_disable(hardware):
+    """Release PWM authority without masking the failure being handled."""
+    if hardware is None:
+        return
+
+    try:
+        hardware.force_disabled()
+    except BaseException:
+        pass
+
+
 def build_application():
     """Compose the production MicroPython application.
 
@@ -307,47 +318,52 @@ def build_application():
         hardware = UnavailableHardware(str(exc))
 
     try:
-        profile = load_profile(PROFILE_PATH)
-    except Exception:
-        profile = InvalidProfile()
+        try:
+            profile = load_profile(PROFILE_PATH)
+        except Exception:
+            profile = InvalidProfile()
 
-    transport = create_usb_cdc_transport()
+        transport = create_usb_cdc_transport()
 
-    mcu_id = _mcu_identity(machine, ubinascii)
-    unique_id = machine.unique_id()
+        mcu_id = _mcu_identity(machine, ubinascii)
+        unique_id = machine.unique_id()
 
-    session_factory = SessionIdGenerator(
-        unique_id,
-        _startup_tick(time),
-    )
+        session_factory = SessionIdGenerator(
+            unique_id,
+            _startup_tick(time),
+        )
 
-    state_machine = RuntimeStateMachine()
+        state_machine = RuntimeStateMachine()
 
-    telemetry = TelemetryEncoder(
-        profile=profile,
-        firmware_version=FIRMWARE_VERSION,
-        mcu_id=mcu_id,
-        capabilities=CAPABILITIES,
-    )
+        telemetry = TelemetryEncoder(
+            profile=profile,
+            firmware_version=FIRMWARE_VERSION,
+            mcu_id=mcu_id,
+            capabilities=CAPABILITIES,
+        )
 
-    runtime = RuntimeCoordinator(
-        profile=profile,
-        state_machine=state_machine,
-        hardware=hardware,
-        telemetry=telemetry,
-        session_factory=session_factory,
-    )
+        runtime = RuntimeCoordinator(
+            profile=profile,
+            state_machine=state_machine,
+            hardware=hardware,
+            telemetry=telemetry,
+            session_factory=session_factory,
+        )
 
-    # Self-test is intentionally allowed to fail into a latched FAULT while
-    # leaving the protocol loop alive for diagnostics.
-    runtime.perform_self_test(clock.ticks_ms())
+        # Self-test may fail into a latched FAULT while leaving HX1 alive.
+        runtime.perform_self_test(clock.ticks_ms())
 
-    return FirmwareApp(
-        runtime=runtime,
-        transport=transport,
-        hardware=hardware,
-        clock=clock,
-    )
+        return FirmwareApp(
+            runtime=runtime,
+            transport=transport,
+            hardware=hardware,
+            clock=clock,
+        )
+    except BaseException:
+        # Once a hardware handle exists, later bootstrap failure must not
+        # abandon it without a best-effort PWM release.
+        _best_effort_disable(hardware)
+        raise
 
 
 def main():
@@ -357,10 +373,7 @@ def main():
     finally:
         # KeyboardInterrupt, SystemExit, and other BaseException paths bypass
         # normal command handling. Always make a final best-effort PWM release.
-        try:
-            app.hardware.force_disabled()
-        except Exception:
-            pass
+        _best_effort_disable(app.hardware)
 
 
 if __name__ == "__main__":
