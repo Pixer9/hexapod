@@ -1,0 +1,20 @@
+{
+    "schema_version": 1,
+    "link_id": "servo2040-usb-v1",
+    "transport": {
+        "kind": "usb_cdc_serial",
+        "device": "/dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_e661410403724132-if00"
+    },
+    "protocol": {
+        "client_minor": 1,
+        "required_server_minor": 1,
+        "joint_count": 18,
+        "heartbeat_period_ms": 100,
+        "target_period_ms": 20
+    },
+    "expected_profile": {
+        "id": "hexapod-standard-v1",
+        "revision": 1,
+        "sha256": "9B214ED005E58E77A528B1ACDAB1E49BAD7C5ABBE98F42B41719A580A2C49060"
+    }
+}
