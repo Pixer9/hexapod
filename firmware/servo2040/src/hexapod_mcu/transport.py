@@ -16,7 +16,6 @@ This module performs framing only. CRC and command parsing remain in
 from .constants import MAX_FRAME_BYTES
 from .protocol import LineFramer
 
-
 DEFAULT_RX_BUDGET_BYTES = 256
 
 
@@ -157,6 +156,7 @@ class USBTextTransport:
 def create_usb_cdc_transport(rx_budget_bytes=DEFAULT_RX_BUDGET_BYTES):
     """Create the production MicroPython USB-CDC transport."""
     import sys
+
     import uselect
 
     poller = uselect.poll()

@@ -18,8 +18,8 @@ continuous at stance/swing boundaries for a fixed command and blend.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
@@ -33,7 +33,6 @@ from hexapod.model import (
 )
 
 from .config import TripodGaitConfig
-
 
 TRIPOD_A: tuple[str, ...] = ("RF", "RB", "LM")
 TRIPOD_B: tuple[str, ...] = ("RM", "LF", "LB")

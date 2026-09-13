@@ -14,12 +14,11 @@ from dataclasses import dataclass
 
 from .config import HX1ClientConfig
 from .messages import (
-    HX1Ack,
+    ZERO_SESSION,
     HX1Inbound,
     HX1Info,
     HX1Nack,
     HX1Outbound,
-    ZERO_SESSION,
     build_estop,
     build_heartbeat,
     build_hello,

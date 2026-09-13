@@ -9,9 +9,9 @@ robot lifecycle/safety state, inverse kinematics, HX1, or hardware I/O.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
-import math
 
 from hexapod.control import MotionCommand
 

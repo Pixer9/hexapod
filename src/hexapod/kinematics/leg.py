@@ -13,8 +13,8 @@ clamping the requested distance onto the reachable workspace boundary.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from hexapod.model.geometry import LinkLengths, Vec3
 

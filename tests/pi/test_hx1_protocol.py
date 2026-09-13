@@ -11,11 +11,10 @@ SRC = REPO_ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 from hexapod.hx1 import (  # noqa: E402
+    UINT32_MAX,
     HX1CRCError,
-    HX1FrameFormatError,
     HX1LineFramer,
     HX1Sequence,
-    UINT32_MAX,
     crc16_ccitt_false,
     encode_frame,
     parse_frame,

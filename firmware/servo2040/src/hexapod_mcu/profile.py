@@ -22,7 +22,6 @@ except ImportError:
 
 from .constants import JOINT_COUNT
 
-
 SCHEMA_VERSION = 1
 ANGLE_UNIT = "centidegree"
 RATE_UNIT = "centidegree_per_second"

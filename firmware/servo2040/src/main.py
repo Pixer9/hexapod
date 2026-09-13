@@ -294,6 +294,7 @@ def build_application():
     firmware startup, keeping ``main.py`` importable under CPython tests.
     """
     import time
+
     import machine
     import micropython
 

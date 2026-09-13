@@ -15,10 +15,10 @@ Servo 2040 hard actuator rate and does not qualify the robot for arming.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
 import json
 import math
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from hexapod.kinematics import LOGICAL_JOINT_COUNT

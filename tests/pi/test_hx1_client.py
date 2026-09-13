@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import sys
 import unittest
 from pathlib import Path
@@ -23,8 +22,8 @@ from hexapod.hx1 import (  # noqa: E402
     HX1PeerMismatchError,
     HX1SessionError,
     HX1UnexpectedResponseError,
-    load_hx1_client_config,
     encode_frame,
+    load_hx1_client_config,
     parse_frame,
 )
 

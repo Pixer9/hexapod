@@ -14,7 +14,6 @@ sys.path.insert(0, str(FIRMWARE_SRC))
 
 from hexapod_mcu.constants import (  # noqa: E402
     FAULT_HOLD_MS,
-    JOINT_COUNT,
     LINK_TIMEOUT_MS,
     MOTION_TIMEOUT_MS,
 )
@@ -34,7 +33,6 @@ from hexapod_mcu.state_machine import (  # noqa: E402
     State,
 )
 from hexapod_mcu.telemetry import TelemetryEncoder  # noqa: E402
-
 
 SESSION_INT = 0xA1B2C3D4
 SESSION = "A1B2C3D4"

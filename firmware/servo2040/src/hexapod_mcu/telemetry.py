@@ -13,7 +13,6 @@ The joint vector always represents commanded state, never measured position.
 from .constants import JOINT_COUNT, PROTOCOL_MINOR, UINT32_MAX
 from .protocol import encode_frame
 
-
 _TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-:"
 
 

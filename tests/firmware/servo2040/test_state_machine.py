@@ -24,7 +24,6 @@ from hexapod_mcu.state_machine import (  # noqa: E402
     State,
 )
 
-
 SESSION = "A1B2C3D4"
 TARGET = tuple(0 for _ in range(JOINT_COUNT))
 

@@ -6,19 +6,19 @@ the package merely to import ``hexapod.inputs``.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
 import threading
 import time
+from dataclasses import dataclass
 from typing import Any
+
+from hexapod.control import CommandSample, MotionLimits
 
 from .ds4 import (
     DS4Config,
     DS4InputState,
     normalize_axis,
 )
-from hexapod.control import CommandSample, MotionLimits
-
 
 log = logging.getLogger(__name__)
 

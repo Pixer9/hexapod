@@ -12,7 +12,6 @@ import csv
 import json
 import math
 from pathlib import Path
-from typing import Iterable
 
 from model import (
     JOINT_ORDER,
@@ -22,9 +21,8 @@ from model import (
     joint_names,
     neutral_foot_body,
 )
-from tripod import GaitParams, TripodGait
 from smoothing import OnePoleSlewUD
-
+from tripod import GaitParams, TripodGait
 
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parents[2]

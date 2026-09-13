@@ -9,8 +9,8 @@ pulse conversion, or hardware I/O. Those remain Servo 2040 responsibilities.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
 
@@ -22,8 +22,8 @@ from hexapod.model.geometry import (
     build_leg_transforms,
     leg_to_body,
 )
-from .leg import JointAngles, KinematicsError, leg_ik
 
+from .leg import JointAngles, KinematicsError, leg_ik
 
 JOINTS_PER_LEG = 3
 LOGICAL_JOINT_COUNT = len(CANONICAL_LEG_ORDER) * JOINTS_PER_LEG

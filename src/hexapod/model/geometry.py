@@ -12,11 +12,10 @@ configuration data.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping, TypeAlias
-
 
 Vec3: TypeAlias = tuple[float, float, float]
 

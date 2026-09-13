@@ -12,8 +12,8 @@ joint angles, servo commands, or HX1 frames.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 
 class MotionCommandError(ValueError):

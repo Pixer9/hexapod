@@ -9,13 +9,12 @@ without the other side changing with it.
 
 from __future__ import annotations
 
-from dataclasses import replace
 import importlib
 import json
 import sys
 import unittest
+from dataclasses import replace
 from pathlib import Path
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PI_SRC = REPO_ROOT / "src"
@@ -31,6 +30,8 @@ sys.path.insert(0, str(FIRMWARE_SRC))
 sys.path.insert(0, str(PI_SRC))
 
 firmware_main = importlib.import_module("main")
+
+# isort: off
 
 from hexapod.hx1.client import (  # noqa: E402
     HX1ClientCore,
@@ -104,6 +105,7 @@ from hexapod_mcu.state_machine import (  # noqa: E402
 )
 from hexapod_mcu.telemetry import TelemetryEncoder  # noqa: E402
 
+# isort: on
 
 SESSION_INT = 0xA1B2C3D4
 SESSION = "A1B2C3D4"

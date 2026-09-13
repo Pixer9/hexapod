@@ -15,8 +15,8 @@ from .command import (
 from .loader import MotionConfigError, load_motion_limits
 from .rate_limit import (
     CommandRateLimitConfig,
-    CommandRateLimitError,
     CommandRateLimiter,
+    CommandRateLimitError,
     load_command_rate_limit_config,
     parse_command_rate_limit_config,
 )

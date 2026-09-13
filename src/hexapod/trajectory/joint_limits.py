@@ -10,10 +10,10 @@ entire vector is rejected. Values are never silently clamped.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
 import json
 import math
+from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
 
 from hexapod.model import CANONICAL_LEG_ORDER

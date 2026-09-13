@@ -17,8 +17,8 @@ LOCOMOTION_CONFIG = REPO_ROOT / "config" / "locomotion" / "controller.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.control import (  # noqa: E402
-    CommandRateLimitError,
     CommandRateLimiter,
+    CommandRateLimitError,
     MotionCommand,
     MotionLimitError,
     load_command_rate_limit_config,

@@ -16,10 +16,10 @@ sys.path.insert(0, str(SRC))
 from hexapod.control import MotionCommand  # noqa: E402
 from hexapod.kinematics import RobotKinematics  # noqa: E402
 from hexapod.locomotion import (  # noqa: E402
-    GaitConfigError,
-    GaitError,
     TRIPOD_A,
     TRIPOD_B,
+    GaitConfigError,
+    GaitError,
     TripodGait,
     load_tripod_gait_config,
     parse_tripod_gait_config,

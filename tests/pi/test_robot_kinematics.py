@@ -12,9 +12,9 @@ CONFIG = REPO_ROOT / "config" / "robots" / "standard.json"
 sys.path.insert(0, str(SRC))
 
 from hexapod.kinematics import (  # noqa: E402
+    LOGICAL_JOINT_COUNT,
     FootTargetSetError,
     LegSolveError,
-    LOGICAL_JOINT_COUNT,
     RobotKinematics,
     UnreachableTargetError,
     leg_ik,

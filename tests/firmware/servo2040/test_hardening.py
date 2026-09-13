@@ -19,7 +19,6 @@ firmware_main = importlib.import_module("main")
 import hexapod_mcu.hardware as hardware_module  # noqa: E402
 import hexapod_mcu.transport as transport_module  # noqa: E402
 from hexapod_mcu.constants import (  # noqa: E402
-    JOINT_COUNT,
     LINK_TIMEOUT_MS,
     MAX_MESSAGE_TYPE_CHARS,
     MOTION_TIMEOUT_MS,
@@ -43,7 +42,6 @@ from hexapod_mcu.state_machine import (  # noqa: E402
     State,
 )
 from hexapod_mcu.telemetry import TelemetryEncoder  # noqa: E402
-
 
 SESSION = "A1B2C3D4"
 SESSION_INT = 0xA1B2C3D4

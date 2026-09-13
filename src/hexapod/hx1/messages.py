@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from typing import TypeAlias
 
-from .protocol import HX1Frame, encode_frame, UINT32_MAX
+from .protocol import UINT32_MAX, HX1Frame, encode_frame
 
 JOINT_COUNT = 18
 ZERO_SESSION = "00000000"

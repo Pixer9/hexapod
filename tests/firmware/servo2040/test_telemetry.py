@@ -17,7 +17,6 @@ from hexapod_mcu.protocol import parse_frame  # noqa: E402
 from hexapod_mcu.state_machine import RuntimeStateMachine, State  # noqa: E402
 from hexapod_mcu.telemetry import TelemetryEncoder, TelemetryError  # noqa: E402
 
-
 SESSION = "A1B2C3D4"
 TARGET = tuple(1000 if index % 3 == 2 else 0 for index in range(JOINT_COUNT))
 

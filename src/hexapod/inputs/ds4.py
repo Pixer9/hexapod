@@ -16,11 +16,11 @@ invariants, but these signs are the verified baseline for this hardware.
 
 from __future__ import annotations
 
+import json
+import math
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-import json
-import math
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping

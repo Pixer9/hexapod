@@ -19,11 +19,11 @@ from .controller_config import (
     parse_locomotion_controller_config,
 )
 from .tripod import (
+    TRIPOD_A,
+    TRIPOD_B,
     GaitError,
     GaitFrame,
     LegPhaseState,
-    TRIPOD_A,
-    TRIPOD_B,
     TripodGait,
     tripod_phase_for_leg,
 )
