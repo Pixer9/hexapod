@@ -250,7 +250,8 @@ def summarize(samples: list[dict], cfg: dict) -> dict:
         "by_joint": by_joint,
         "notes": [
             "These values are an initial software baseline, not final actuator safety qualification.",
-            "The profile max_rate_cd_s fields must remain null until the production locomotion generator and physical behavior are validated.",
+            "Do not promote these candidates into the actuator profile based on this software-only tool alone; separate physical qualification is required.",
+            "Revision 3 currently uses 25000 cd/s based on separately documented physical qualification.",
             "Re-run this tool whenever command limits, gait timing, step height, stance height, geometry, or trajectory generation changes.",
         ],
     }
@@ -313,8 +314,9 @@ def print_summary(summary: dict) -> None:
         f"t={overall['peak_time_s']}s"
     )
     print()
-    print("IMPORTANT: candidates are software-envelope values only; do not copy")
-    print("them into actuator-profile.json as qualified hard limits yet.")
+    print("IMPORTANT: candidates are software-envelope values only.")
+    print("Do not treat them as qualified actuator hard limits without separate")
+    print("physical qualification and documented evidence.")
 
 
 def main() -> int:

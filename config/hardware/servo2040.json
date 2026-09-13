@@ -16,7 +16,7 @@
     },
     "expected_profile": {
         "id": "hexapod-standard-v1",
-        "revision": 2,
-        "sha256": "044CAAF7CEA6FDE9485B166357944167F382F65C205CF33BE67230139BEC99A1"
+        "revision": 3,
+        "sha256": "DF71DEBDB81A02999715B201DBEE7B7CF1363937E81C9D19449C4DBAA9178177"
     }
 }

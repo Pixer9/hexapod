@@ -52,7 +52,7 @@ class CurrentProfileTests(unittest.TestCase):
 
         self.assertEqual(profile.schema_version, 1)
         self.assertEqual(profile.profile_id, "hexapod-standard-v1")
-        self.assertEqual(profile.profile_revision, 2)
+        self.assertEqual(profile.profile_revision, 3)
         self.assertEqual(profile.joint_count, 18)
         self.assertEqual(len(profile.joints), 18)
         self.assertEqual(
@@ -61,14 +61,16 @@ class CurrentProfileTests(unittest.TestCase):
         )
         self.assertEqual(len(profile.profile_hash), 64)
 
-    def test_current_profile_is_intentionally_not_arm_qualified(self):
+    def test_current_profile_is_arm_qualified(self):
         profile = load_profile(PROFILE_PATH)
 
-        self.assertFalse(profile.arm_qualified)
-        self.assertEqual(len(profile.qualification_errors()), 18)
-
-        with self.assertRaises(ProfileQualificationError):
-            profile.require_arm_qualified()
+        self.assertTrue(profile.arm_qualified)
+        self.assertEqual(profile.qualification_errors(), ())
+        self.assertTrue(profile.require_arm_qualified())
+        self.assertEqual(
+            tuple(joint.max_rate_cd_s for joint in profile.joints),
+            (25000,) * 18,
+        )
 
     def test_channel_mapping_matches_contract(self):
         profile = load_profile(PROFILE_PATH)
@@ -128,17 +130,18 @@ class CurrentProfileTests(unittest.TestCase):
 
 
 class QualificationTests(unittest.TestCase):
-    def test_profile_becomes_arm_qualified_when_all_rates_are_positive(self):
-        data = load_raw_dict()
 
-        for joint in data["joints"]:
-            joint["max_rate_cd_s"] = 25000
+    def test_profile_becomes_unqualified_when_any_rate_is_missing(self):
+        data = load_raw_dict()
+        data["joints"][0]["max_rate_cd_s"] = None
 
         profile = parse_profile_bytes(encode_dict(data))
 
-        self.assertTrue(profile.arm_qualified)
-        self.assertEqual(profile.qualification_errors(), ())
-        self.assertTrue(profile.require_arm_qualified())
+        self.assertFalse(profile.arm_qualified)
+        self.assertEqual(len(profile.qualification_errors()), 1)
+
+        with self.assertRaises(ProfileQualificationError):
+            profile.require_arm_qualified()
 
 
 class StructuralValidationTests(unittest.TestCase):

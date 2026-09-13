@@ -6,8 +6,8 @@ The loader deliberately separates two concepts:
 2. arm qualification -- every safety parameter required for energized operation
    has been physically qualified.
 
-The current migrated profile is expected to be structurally valid but *not*
-arm-qualified because ``max_rate_cd_s`` remains null.
+A structurally valid profile may still be unqualified for arming when required
+physical safety parameters such as ``max_rate_cd_s`` are absent.
 """
 
 try:

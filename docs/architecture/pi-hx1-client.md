@@ -112,8 +112,8 @@ The current expected actuator profile is:
 
 ```text
 profile id       hexapod-standard-v1
-profile revision 1
-profile SHA-256  9B214ED005E58E77A528B1ACDAB1E49BAD7C5ABBE98F42B41719A580A2C49060
+profile revision 3
+profile SHA-256  DF71DEBDB81A02999715B201DBEE7B7CF1363937E81C9D19449C4DBAA9178177
 ```
 
 The SHA-256 is over the exact deployed `actuator-profile.json` bytes, matching
@@ -231,19 +231,24 @@ The client/link/transport layers do not yet own:
 - robot lifecycle orchestration;
 - SafetySupervisor behavior;
 - automatic ARM/START transitions;
-- physical servo qualification.
+- integrated locomotion qualification.
 
 The raw transport contract is documented in `pi-hx1-transport.md`.
 
 The synchronous composition layer is documented in `pi-hx1-link.md`.
 
-## Current physical-arm limitation
+## Current physical-arm status
 
-The current Servo 2040 actuator profile is structurally valid but still has
-`max_rate_cd_s = null` for the joints.
+Actuator-profile revision 3 provides physically qualified hard joint-command
+rate limits of `25000 cd/s` for all 18 joints.
 
-Therefore it is intentionally **not arm-qualified**.
+The profile is therefore arm-qualified when its exact ID, revision, and
+SHA-256 fingerprint match between the Pi and Servo 2040 and the normal runtime
+self-test and hardware-compatibility checks succeed.
 
-HX1 development, HELLO/INFO negotiation, parsing, link pumping, and serial
-transport testing can proceed, but physical ARM/walking must remain blocked
-until the actuator profile is physically qualified and revised.
+Arm qualification permits controlled energized HIL and commissioning. It does
+not by itself qualify the production locomotion generator, controlled gait, or
+loaded walking.
+
+Physical ARM remains subject to normal runtime authority, state-machine,
+watchdog, hardware-compatibility, and safety checks.

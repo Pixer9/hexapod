@@ -217,8 +217,17 @@ def ready_active(rate_cd_s=25000):
 
 
 class SelfTestTests(unittest.TestCase):
-    def test_current_unqualified_profile_fails_safe(self):
-        profile = load_profile(PROFILE_PATH)
+    def test_unqualified_profile_fails_safe(self):
+        data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+        data["joints"][0]["max_rate_cd_s"] = None
+
+        profile = parse_profile_bytes(
+            json.dumps(
+                data,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+
         runtime, sm, hw = make_runtime(
             profile,
             do_self_test=False,
@@ -229,14 +238,15 @@ class SelfTestTests(unittest.TestCase):
         self.assertEqual(sm.fault, Fault.PROFILE)
         self.assertFalse(hw.enabled)
 
-    def test_qualified_compatible_profile_reaches_disarmed(self):
+    def test_current_qualified_profile_reaches_disarmed(self):
         runtime, sm, hw = make_runtime(
-            qualified_profile(),
+            load_profile(PROFILE_PATH),
             do_self_test=False,
         )
 
         self.assertTrue(runtime.perform_self_test(0))
         self.assertEqual(sm.state, State.DISARMED)
+        self.assertEqual(sm.fault, Fault.NONE)
         self.assertFalse(hw.enabled)
 
 

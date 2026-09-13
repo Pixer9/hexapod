@@ -148,13 +148,19 @@ class MappingTests(unittest.TestCase):
 
 
 class RateTests(unittest.TestCase):
+
     def test_required_rate_uses_actual_dt_and_rounds_up(self):
         self.assertEqual(required_rate_cd_s(0, 500, 20), 25000)
         self.assertEqual(required_rate_cd_s(0, 500, 25), 20000)
         self.assertEqual(required_rate_cd_s(0, 1, 3), 334)
 
-    def test_current_profile_refuses_rate_validation(self):
-        profile = load_profile(PROFILE_PATH)
+    def test_unqualified_profile_refuses_rate_validation(self):
+        data = json.loads(PROFILE_PATH.read_text(encoding="utf-8"))
+        data["joints"][0]["max_rate_cd_s"] = None
+
+        profile = parse_profile_bytes(
+            json.dumps(data, separators=(",", ":")).encode("utf-8")
+        )
 
         with self.assertRaises(UnqualifiedRateError):
             validate_rate_transition(

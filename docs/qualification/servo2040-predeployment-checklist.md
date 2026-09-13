@@ -1,10 +1,11 @@
 # Servo 2040 Pre-Deployment Checklist
 
 **Status:** Open  
-**Checkpoint:** post-MCU-hardening, before physical servo deployment
+**Checkpoint:** actuator-rate qualification complete; before integrated energized HIL/commissioning
 
-The current MCU code is a host-tested architecture checkpoint. It is not yet
-approved for energized robot operation.
+The MCU architecture and actuator-rate boundary have completed host-side and
+representative physical qualification. The robot is not yet approved for normal
+gait or loaded walking.
 
 ## Code hardening completed
 
@@ -16,73 +17,95 @@ approved for energized robot operation.
 - atomic complete-vector hard position validation;
 - hard command-rate validation using actual MCU elapsed time;
 - fail-safe top-level exception containment;
-- production Ctrl-C keyboard interrupt disabled on the HX1 USB CDC stream;
+- maintenance Ctrl-C escape on the HX1 USB CDC stream;
 - best-effort PWM release on top-level firmware exit;
 - tri-state hardware output truth (`enabled`, `disabled`, `unknown`);
 - repeated disable attempts while hardware output state is unknown;
 - watchdog grace hold cannot energize outputs from a non-energized state.
 
-## Must be resolved before energized deployment
+## Actuator profile completed
 
-### Actuator profile
+- revision 2 corrected migrated tibia upper ranges to remain within the
+  ServoCluster angular backend envelope;
+- representative coxa, femur, and tibia actuators were physically exercised
+  through the selected hard command-rate ceiling;
+- additional cross-leg sanity checks were performed;
+- revision 3 assigns `max_rate_cd_s = 25000` to all 18 joints;
+- revision 3 is arm-qualified for controlled HIL/commissioning;
+- exact revision 3 profile SHA-256 is
+  `DF71DEBDB81A02999715B201DBEE7B7CF1363937E81C9D19449C4DBAA9178177`;
+- Pi expected profile identity is revision 3 with the same exact-byte hash;
+- qualification evidence is recorded in
+  `docs/qualification/joint-rate-rev3.md`.
 
-- qualify every `max_rate_cd_s`; current `null` values intentionally block
-  successful self-test/arming;
-- revise the four migrated tibia upper ranges that exceed Pimoroni's default
-  angular value envelope, unless a separately qualified calibration is adopted;
-- increment profile revision and capture the exact deployed profile hash.
+## Must be resolved before normal energized robot operation
 
 ### Applied-output behavior
 
-- decide whether the accepted-target hard rate limit alone satisfies the MCU
-  hard-slew responsibility or whether a separate applied-output slew stage is
-  required;
-- physically validate arm transitions, target updates, STOP, DISARM, watchdog
-  hold, and E-stop behavior.
+- validate the accepted-target hard rate limit in integrated Pi-to-MCU motion;
+- physically validate ARM, START, TARGET, STOP, DISARM, watchdog hold, fault,
+  E-stop, and recovery behavior with revision 3 deployed;
+- verify that no integrated motion path can bypass the MCU hard position or rate
+  envelope.
 
 ### Protocol/client contract
 
-- reconcile protocol-minor policy before implementing the production Pi client;
-- update the protocol document to state the 32-character maximum `TYPE` length;
-- decide whether `TARGET.PERIOD_MS` remains advisory/diagnostic or becomes part
-  of negotiated semantics;
-- decide whether `TARGET_AGE_MS` should preserve diagnostic age through
-  STOP/DISARM instead of sharing the ACTIVE watchdog timestamp;
-- decide whether `UPTIME_MS` means a true accumulated uptime counter or the raw
-  wrapping MicroPython tick value.
+- preserve protocol-minor compatibility policy during further client work;
+- preserve the bounded 32-character maximum `TYPE` behavior;
+- keep `TARGET.PERIOD_MS` semantics consistent between implementation and
+  protocol documentation;
+- confirm whether `TARGET_AGE_MS` diagnostic behavior should change through
+  STOP/DISARM;
+- confirm whether future uptime telemetry should represent accumulated uptime or
+  the raw wrapping MicroPython tick value.
 
 ### MicroPython / Servo 2040 board validation
 
-- run the complete firmware modules on the actual installed Pimoroni
-  MicroPython build before enabling servo power;
-- verify `ujson`, `uhashlib`, `machine.unique_id`, `micropython.kbd_intr`,
-  `uselect.poll`, and all used `time.ticks_*` APIs;
-- verify the exact Pimoroni `ServoCluster` constructor, `value(load=False)`,
-  `load()`, `disable_all(load=True)`, `min_value()`, and `max_value()` behavior;
-- evaluate whether outbound USB writes can block long enough to interfere with
-  safety timing;
-- decide whether to enable RP2040 `machine.WDT` as protection against a wedged
+Completed before rate promotion:
+
+- production modules executed on the installed Pimoroni MicroPython build;
+- ServoCluster channel enable/disable behavior was exercised on real hardware;
+- exact selected-channel isolation was verified during single-joint tests;
+- all outputs were verified disabled after each qualification run;
+- the maintenance Ctrl-C escape and board reset path were exercised.
+
+Still to evaluate during later hardening:
+
+- whether outbound USB writes can block long enough to interfere with safety
+  timing;
+- whether to enable RP2040 `machine.WDT` as protection against a wedged
   interpreter/USB write path.
 
-### Physical qualification sequence
+## Physical commissioning sequence
 
-1. Servo 2040 only, servo rail disconnected.
-2. One unloaded servo with conservative limits.
-3. Verify direction, offset, disable, E-stop, and watchdog behavior.
-4. Expand to one complete leg.
-5. Expand to all 18 channels while mechanically unloaded where practical.
-6. Validate current draw and power behavior.
-7. Integrate Pi and MCU only after both sides pass independent boundary tests.
+Completed:
+
+1. Servo 2040 validation with servo rail disconnected.
+2. Conservative single-joint powered checks.
+3. Representative right-back coxa/femur/tibia rate ladders through 250 deg/s.
+4. Additional right-front actuator sanity checks.
+5. Exact channel isolation and post-test disable verification.
+
+Next:
+
+6. Deploy the revision 3 / rc3 candidate.
+7. Verify HIL boot reaches `DISARMED` rather than `FAULT/PROFILE`.
+8. Exercise controlled ARM/START/TARGET/STOP/DISARM behavior while mechanically
+   supported.
+9. Exercise watchdog, E-stop, fault, and recovery behavior while energized.
+10. Perform all-joint mapping/direction and supported whole-body pose checks.
+11. Integrate the production Pi motion generator.
+12. Perform controlled gait tests.
+13. Validate loaded walking and power/current behavior.
 
 ## Deferred, not forgotten
 
-The following are intentionally outside the current checkpoint rather than
-assumed complete:
+The following remain outside the current checkpoint:
 
 - foot-contact acquisition;
 - IMU/ToF MCU acquisition decision;
 - voltage/current telemetry;
 - status LED policy;
 - physical E-stop input;
-- maintenance/calibration protocol;
-- production Pi HX1 client and MCU simulator.
+- maintenance/calibration protocol beyond the current maintenance escape;
+- final production lifecycle/orchestration behavior.

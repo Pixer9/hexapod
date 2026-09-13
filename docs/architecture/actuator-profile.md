@@ -1,10 +1,10 @@
 # Servo 2040 Actuator Profile
 
-**Status:** Accepted structure; hard slew rates pending physical qualification  
-**Profile:** `hexapod-standard-v1`  
-**Profile revision:** 2  
-**Schema version:** 1  
-**Date:** 2026-09-12
+**Status:** Arm-qualified actuator profile for controlled HIL/commissioning; integrated locomotion validation remains pending
+**Profile:** `hexapod-standard-v1`
+**Profile revision:** 3
+**Schema version:** 1
+**Date:** 2026-09-13
 
 ## Purpose
 
@@ -136,15 +136,18 @@ This is intentional.
 
 ## Authoritative Physical Calibration
 
-Revision 2 corrects four migrated tibia upper servo commands that exceeded the
+Revision 2 corrected four migrated tibia upper servo commands that exceeded the
 default ServoCluster `ANGULAR` calibration domain of `-90 deg..+90 deg`. The
 legacy Servo 2040 control path also explicitly treated servo commands as
 `-90 deg..+90 deg`.
 
-Only the backend-unrepresentable upper endpoints are corrected. Channel mapping,
-direction, offsets, and the other physical endpoints are unchanged. This reduces
-the affected derived logical tibia maxima while keeping every current Pi soft
-limit inside the MCU hard envelope.
+Revision 3 preserves the revision 2 channel mapping, direction, offsets, and
+physical position limits. Revision 3 adds the physically qualified hard logical
+command-rate ceiling described below.
+
+Only the backend-unrepresentable upper endpoints were corrected in revision 2.
+This reduced the affected derived logical tibia maxima while keeping every
+current Pi soft limit inside the MCU hard envelope.
 
 The current physical calibration is:
 
@@ -202,25 +205,38 @@ Per-joint fields:
 
 ## Hard Slew Rate
 
-`max_rate_cd_s` remains intentionally `null` in revision 2 of the profile.
+Revision 3 qualifies the hard logical command-rate ceiling as:
 
-The legacy system did not provide an MCU-enforced hard joint-rate limit, so there is no proven value to migrate.
+```text
+max_rate_cd_s = 25000
+```
 
-A `null` hard-rate value means:
+for all 18 joints.
 
-> **This actuator profile is not qualified for arming.**
+This is equivalent to:
 
-The future profile loader must fail safety validation if any required hard-rate value is `null`.
+```text
+250 deg/s
+```
 
-A hard-rate value will be added only after the installed servo model and mechanical behavior are verified.
+The value is an MCU-enforced maximum logical command slew rate. It does not
+represent measured servo shaft velocity and does not claim that the physical
+servo tracks 250 deg/s under every possible load.
 
-Once qualified:
+Qualification used progressive single-joint physical testing on representative
+coxa, femur, and tibia installations through 250 deg/s, followed by additional
+cross-leg sanity checks.
 
-1. fill all `max_rate_cd_s` values;
-2. increment `profile_revision`;
-3. document the qualification basis;
-4. recompute/verify the profile fingerprint;
-5. run actuator and state-machine safety tests before physical walking tests.
+The qualification record is:
+
+- `docs/qualification/joint-rate-rev3.md`
+
+A missing or non-positive required hard-rate value still makes a profile
+unqualified for arming.
+
+Arm qualification establishes that the profile contains the physical safety
+parameters required for controlled energized HIL and commissioning. It does not
+by itself qualify the complete locomotion stack or loaded walking behavior.
 
 ## Derived Logical Limits
 
@@ -286,6 +302,12 @@ This avoids a self-referential hash and ensures the fingerprint represents the e
 
 Deployment tooling must preserve the exact bytes whose hash is expected by the Pi.
 
+The exact revision 3 fingerprint is:
+
+```text
+DF71DEBDB81A02999715B201DBEE7B7CF1363937E81C9D19449C4DBAA9178177
+```
+
 ## Revision Rules
 
 Increment `profile_revision` whenever a change can affect physical actuation or logical interpretation, including:
@@ -305,5 +327,7 @@ Formatting-only changes also change the SHA-256 fingerprint even when the revisi
 - `docs/architecture/control-boundary.md`
 - `docs/architecture/runtime-state-machine.md`
 - `docs/protocols/pi-servo2040-v1.md`
+- `docs/qualification/joint-rate-method.md`
+- `docs/qualification/joint-rate-rev3.md`
 - `docs/decisions/0002-logical-joint-command-interface.md`
 - `docs/decisions/0004-actuator-profile-coordinate-model.md`

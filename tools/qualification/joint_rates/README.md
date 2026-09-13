@@ -61,21 +61,34 @@ It includes axial motion, yaw, maximum mixed-axis corners, full reversals, and a
 
 ## Important limitation
 
-This is the **first qualification stage**, not the final safety sign-off.
+This tool is a **software-envelope baseline**, not final actuator qualification.
 
-The current actuator profile must keep:
+Its generated candidates must not be promoted into `actuator-profile.json` solely
+because this tool produced them. A hard actuator limit requires separate
+physical qualification of the installed actuator/mechanism and documented
+safety evidence.
+
+Actuator-profile revision 3 currently contains:
 
 ```json
-"max_rate_cd_s": null
+"max_rate_cd_s": 25000
 ```
 
-until all of the following are true:
+for all 18 joints. That value was promoted only after separate progressive
+physical qualification and is documented in:
 
-1. the new production Pi locomotion generator exists;
-2. this qualification tool is driven by that production generator or an equivalent regression harness;
-3. all intended gait/body-motion envelopes have been exercised;
-4. candidate limits have been checked against servo capability;
-5. physical unloaded and then loaded behavior has been validated;
-6. the selected limits have safety margin and are documented.
+```text
+docs/qualification/joint-rate-rev3.md
+```
 
-Re-run the qualification whenever motion-envelope inputs change.
+The revision 3 result does not make this software-only tool authoritative for
+future profile updates.
+
+Use this tool to answer:
+
+> What rates does the modeled motion envelope request, and how close are those
+> rates to the currently qualified actuator ceiling?
+
+Re-run the baseline whenever motion-envelope inputs change. If production demand
+approaches or exceeds the qualified ceiling, review the motion design and repeat
+physical rate qualification as appropriate.

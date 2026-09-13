@@ -8,7 +8,7 @@ The module is safe to import under CPython for host-side tests. Board-specific
 imports occur only while building the production application.
 """
 
-FIRMWARE_VERSION = "0.1.0-rc2"
+FIRMWARE_VERSION = "0.1.0-rc3"
 PROFILE_PATH = "config/actuator-profile.json"
 
 STATUS_RATE_HZ = 10
