@@ -52,7 +52,7 @@ class CurrentProfileTests(unittest.TestCase):
 
         self.assertEqual(profile.schema_version, 1)
         self.assertEqual(profile.profile_id, "hexapod-standard-v1")
-        self.assertEqual(profile.profile_revision, 1)
+        self.assertEqual(profile.profile_revision, 2)
         self.assertEqual(profile.joint_count, 18)
         self.assertEqual(len(profile.joints), 18)
         self.assertEqual(
@@ -88,16 +88,16 @@ class CurrentProfileTests(unittest.TestCase):
             expected,
         )
 
-    def test_derived_logical_ranges_match_migrated_calibration(self):
+    def test_derived_logical_ranges_match_backend_compatible_calibration(self):
         profile = load_profile(PROFILE_PATH)
 
         expected = (
             (-9400, 8600),
             (-10000, 4000),
-            (1000, 13000),
+            (1000, 11900),
             (-8300, 9700),
             (-10000, 4000),
-            (1000, 13000),
+            (1000, 12500),
             (-8400, 9600),
             (-10000, 4000),
             (1000, 13000),
@@ -106,10 +106,10 @@ class CurrentProfileTests(unittest.TestCase):
             (1000, 13000),
             (-8400, 9600),
             (-10000, 4000),
-            (1000, 13000),
+            (1000, 12900),
             (-8200, 9800),
             (-10000, 4000),
-            (1000, 13000),
+            (1000, 12500),
         )
 
         actual = tuple(

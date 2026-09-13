@@ -32,9 +32,9 @@ def ready_disarmed():
 
 class TelemetryTests(unittest.TestCase):
     def setUp(self):
-        profile = load_profile(PROFILE_PATH)
+        self.profile = load_profile(PROFILE_PATH)
         self.tx = TelemetryEncoder(
-            profile=profile,
+            profile=self.profile,
             firmware_version="0.1.0-rc1",
             mcu_id="e661410403724132",
             capabilities=0,
@@ -57,7 +57,10 @@ class TelemetryTests(unittest.TestCase):
         self.assertEqual(fields[3], "0.1.0-rc1")
         self.assertEqual(fields[4], "e661410403724132")
         self.assertEqual(fields[5], "hexapod-standard-v1")
-        self.assertEqual(fields[6], "1")
+        self.assertEqual(
+            fields[6],
+            str(self.profile.profile_revision),
+        )
         self.assertEqual(len(fields[7]), 64)
         self.assertEqual(fields[8], "18")
         self.assertEqual(fields[9], "00000000")

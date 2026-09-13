@@ -2,7 +2,7 @@
 
 **Status:** Accepted structure; hard slew rates pending physical qualification  
 **Profile:** `hexapod-standard-v1`  
-**Profile revision:** 1  
+**Profile revision:** 2  
 **Schema version:** 1  
 **Date:** 2026-09-12
 
@@ -136,16 +136,26 @@ This is intentional.
 
 ## Authoritative Physical Calibration
 
-The migrated physical calibration is:
+Revision 2 corrects four migrated tibia upper servo commands that exceeded the
+default ServoCluster `ANGULAR` calibration domain of `-90 deg..+90 deg`. The
+legacy Servo 2040 control path also explicitly treated servo commands as
+`-90 deg..+90 deg`.
+
+Only the backend-unrepresentable upper endpoints are corrected. Channel mapping,
+direction, offsets, and the other physical endpoints are unchanged. This reduces
+the affected derived logical tibia maxima while keeping every current Pi soft
+limit inside the MCU hard envelope.
+
+The current physical calibration is:
 
 | Joint | Ch | Direction | Offset | Servo range | Derived logical range |
 |---|---:|---:|---:|---:|---:|
 | RF Coxa | 12 | -1 | -4° | -90°…90° | -94°…86° |
 | RF Femur | 13 | +1 | 37° | -63°…77° | -100°…40° |
-| RF Tibia | 14 | +1 | -29° | -19°…101° | 10°…130° |
+| RF Tibia | 14 | +1 | -29° | -19°…90° | 10°…119° |
 | RM Coxa | 6 | -1 | 7° | -90°…90° | -83°…97° |
 | RM Femur | 7 | +1 | 40° | -60°…80° | -100°…40° |
-| RM Tibia | 8 | +1 | -35° | -25°…95° | 10°…130° |
+| RM Tibia | 8 | +1 | -35° | -25°…90° | 10°…125° |
 | RB Coxa | 0 | -1 | 6° | -90°…90° | -84°…96° |
 | RB Femur | 1 | +1 | 45° | -55°…85° | -100°…40° |
 | RB Tibia | 2 | +1 | -42° | -32°…88° | 10°…130° |
@@ -154,10 +164,10 @@ The migrated physical calibration is:
 | LF Tibia | 17 | +1 | -40° | -30°…90° | 10°…130° |
 | LM Coxa | 9 | -1 | 6° | -90°…90° | -84°…96° |
 | LM Femur | 10 | +1 | 31° | -69°…71° | -100°…40° |
-| LM Tibia | 11 | +1 | -39° | -29°…91° | 10°…130° |
+| LM Tibia | 11 | +1 | -39° | -29°…90° | 10°…129° |
 | LB Coxa | 3 | -1 | 8° | -90°…90° | -82°…98° |
 | LB Femur | 4 | +1 | 40° | -60°…80° | -100°…40° |
-| LB Tibia | 5 | +1 | -35° | -25°…95° | 10°…130° |
+| LB Tibia | 5 | +1 | -35° | -25°…90° | 10°…125° |
 
 The derived logical range is not stored in the JSON profile.
 
@@ -192,7 +202,7 @@ Per-joint fields:
 
 ## Hard Slew Rate
 
-`max_rate_cd_s` is intentionally `null` in revision 1 of the initial profile.
+`max_rate_cd_s` remains intentionally `null` in revision 2 of the profile.
 
 The legacy system did not provide an MCU-enforced hard joint-rate limit, so there is no proven value to migrate.
 

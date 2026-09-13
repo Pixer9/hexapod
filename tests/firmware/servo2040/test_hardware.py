@@ -69,15 +69,15 @@ def load_profile_view():
     return SimpleNamespace(joint_count=data["joint_count"], joints=joints)
 
 
-def clipped_profile_view():
+def overrange_profile_view():
     profile = load_profile_view()
-    clipped = []
+    joints = []
     for joint in profile.joints:
         values = dict(vars(joint))
-        values["servo_min_cd"] = max(values["servo_min_cd"], -9000)
-        values["servo_max_cd"] = min(values["servo_max_cd"], 9000)
-        clipped.append(SimpleNamespace(**values))
-    return SimpleNamespace(joint_count=profile.joint_count, joints=tuple(clipped))
+        if values["name"] == "rf_tibia":
+            values["servo_max_cd"] = 9100
+        joints.append(SimpleNamespace(**values))
+    return SimpleNamespace(joint_count=profile.joint_count, joints=tuple(joints))
 
 
 def safe_channel_target():
@@ -102,24 +102,27 @@ class CompatibilityTests(unittest.TestCase):
         hardware = ServoOutputHardware(FakeServoCluster())
         self.assertEqual(hardware.backend_value_range_cd(0), (-9000, 9000))
 
-    def test_current_profile_exposes_four_backend_range_mismatches(self):
+    def test_current_profile_has_no_backend_range_mismatches(self):
         hardware = ServoOutputHardware(FakeServoCluster())
         errors = hardware.profile_compatibility_errors(load_profile_view())
 
-        self.assertEqual(len(errors), 4)
-        self.assertTrue(any("rf_tibia" in error for error in errors))
-        self.assertTrue(any("rm_tibia" in error for error in errors))
-        self.assertTrue(any("lm_tibia" in error for error in errors))
-        self.assertTrue(any("lb_tibia" in error for error in errors))
+        self.assertEqual(errors, ())
 
-    def test_current_profile_is_not_backend_compatible(self):
+    def test_current_profile_is_backend_compatible(self):
         hardware = ServoOutputHardware(FakeServoCluster())
-        with self.assertRaises(HardwareCompatibilityError):
+        self.assertTrue(
             hardware.require_profile_compatible(load_profile_view())
+        )
 
-    def test_clipped_profile_is_backend_compatible(self):
+    def test_out_of_backend_profile_is_rejected(self):
         hardware = ServoOutputHardware(FakeServoCluster())
-        self.assertTrue(hardware.require_profile_compatible(clipped_profile_view()))
+        profile = overrange_profile_view()
+        errors = hardware.profile_compatibility_errors(profile)
+
+        self.assertEqual(len(errors), 1)
+        self.assertIn("rf_tibia", errors[0])
+        with self.assertRaises(HardwareCompatibilityError):
+            hardware.require_profile_compatible(profile)
 
 
 class FactoryTests(unittest.TestCase):

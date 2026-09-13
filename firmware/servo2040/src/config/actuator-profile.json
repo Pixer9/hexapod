@@ -1,7 +1,7 @@
 {
     "schema_version": 1,
     "profile_id": "hexapod-standard-v1",
-    "profile_revision": 1,
+    "profile_revision": 2,
     "joint_count": 18,
     "angle_unit": "centidegree",
     "rate_unit": "centidegree_per_second",
@@ -33,7 +33,7 @@
             "direction": 1,
             "offset_cd": -2900,
             "servo_min_cd": -1900,
-            "servo_max_cd": 10100,
+            "servo_max_cd": 9000,
             "max_rate_cd_s": null
         },
         {
@@ -63,7 +63,7 @@
             "direction": 1,
             "offset_cd": -3500,
             "servo_min_cd": -2500,
-            "servo_max_cd": 9500,
+            "servo_max_cd": 9000,
             "max_rate_cd_s": null
         },
         {
@@ -153,7 +153,7 @@
             "direction": 1,
             "offset_cd": -3900,
             "servo_min_cd": -2900,
-            "servo_max_cd": 9100,
+            "servo_max_cd": 9000,
             "max_rate_cd_s": null
         },
         {
@@ -183,7 +183,7 @@
             "direction": 1,
             "offset_cd": -3500,
             "servo_min_cd": -2500,
-            "servo_max_cd": 9500,
+            "servo_max_cd": 9000,
             "max_rate_cd_s": null
         }
     ]

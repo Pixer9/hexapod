@@ -156,7 +156,10 @@ class HX1ClientCoreTests(unittest.TestCase):
 
         self.assertTrue(client.negotiated)
         self.assertEqual(client.session, "A1B2C3D4")
-        self.assertEqual(client.peer.profile_revision, 1)
+        self.assertEqual(
+            client.peer.profile_revision,
+            self.config.expected_profile_revision,
+        )
         self.assertEqual(
             client.peer.profile_hash,
             self.config.expected_profile_sha256,
