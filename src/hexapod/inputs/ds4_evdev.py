@@ -339,14 +339,25 @@ class DS4EvdevReader:
                     event,
                     now_s=self._clock(),
                 )
+
+            # A controller reader that ends on its own is no longer a live
+            # command source, even if evdev did not raise an exception.
+            if not self._stop.is_set():
+                disconnected = True
+                log.warning(
+                    "DS4 evdev read loop ended unexpectedly"
+                )
+
         except OSError:
             if not self._stop.is_set():
                 disconnected = True
                 log.warning("DS4 evdev device disconnected")
+
         except Exception:
             if not self._stop.is_set():
                 disconnected = True
                 log.exception("DS4 evdev reader failed")
+
         finally:
             if disconnected:
                 with self._lock:

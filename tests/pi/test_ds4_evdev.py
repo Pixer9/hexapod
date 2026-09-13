@@ -10,10 +10,14 @@ from types import SimpleNamespace
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC = REPO_ROOT / "src"
 DS4_CONFIG = REPO_ROOT / "config" / "inputs" / "ds4.json"
+MOTION_CONFIG = REPO_ROOT / "config" / "control" / "motion.json"
 sys.path.insert(0, str(SRC))
 
+from hexapod.control import load_motion_limits  # noqa: E402
 from hexapod.inputs import (  # noqa: E402
+    DS4ActionType,
     DS4EvdevError,
+    DS4EvdevReader,
     discover_ds4_device,
     load_ds4_config,
 )
@@ -55,6 +59,20 @@ class FakeEvdev:
 
     def InputDevice(self, path):
         return self.devices[path]
+
+
+class FakeReadLoopDevice:
+    def __init__(self, error=None):
+        self.error = error
+        self.closed = False
+
+    def read_loop(self):
+        if self.error is not None:
+            raise self.error
+        return iter(())
+
+    def close(self):
+        self.closed = True
 
 
 class DiscoveryTests(unittest.TestCase):
@@ -136,6 +154,80 @@ class DiscoveryTests(unittest.TestCase):
         )
 
         self.assertEqual(info.path, "/dev/input/event4")
+
+
+class ReaderTerminationTests(unittest.TestCase):
+    def setUp(self):
+        self.config = load_ds4_config(DS4_CONFIG)
+        self.limits = load_motion_limits(MOTION_CONFIG)
+
+    def make_reader(self, device):
+        reader = DS4EvdevReader(
+            self.config,
+            self.limits,
+            clock=lambda: 10.0,
+            evdev_module=FakeEvdev({}),
+        )
+        reader._device = device
+
+        with reader._lock:
+            reader._state.connect(
+                device_path="/dev/input/fake",
+                device_name="Wireless Controller",
+                now_s=1.0,
+            )
+
+        return reader
+
+    def test_clean_unexpected_reader_exit_disconnects_and_estops(self):
+        reader = self.make_reader(FakeReadLoopDevice())
+
+        reader._run()
+
+        snapshot = reader.snapshot()
+        self.assertFalse(snapshot.connected)
+        self.assertIsNone(reader.command_sample(now_s=10.0))
+
+        actions = reader.drain_actions()
+        self.assertEqual(
+            tuple(action.action for action in actions),
+            (
+                DS4ActionType.DISCONNECTED,
+                DS4ActionType.ESTOP,
+            ),
+        )
+
+    def test_reader_oserror_disconnects_and_estops(self):
+        reader = self.make_reader(
+            FakeReadLoopDevice(
+                error=OSError("device removed"),
+            )
+        )
+
+        reader._run()
+
+        self.assertFalse(reader.snapshot().connected)
+        self.assertIsNone(reader.command_sample(now_s=10.0))
+
+        actions = reader.drain_actions()
+        self.assertEqual(
+            tuple(action.action for action in actions),
+            (
+                DS4ActionType.DISCONNECTED,
+                DS4ActionType.ESTOP,
+            ),
+        )
+
+    def test_intentional_stop_is_quiet(self):
+        device = FakeReadLoopDevice()
+        reader = self.make_reader(device)
+
+        reader.stop()
+
+        self.assertTrue(device.closed)
+        self.assertFalse(reader.snapshot().connected)
+        self.assertIsNone(reader.command_sample(now_s=10.0))
+        self.assertEqual(reader.drain_actions(), ())
 
 
 if __name__ == "__main__":

@@ -54,7 +54,7 @@ They are not duplicated in the DS4 config.
 The default mapping preserves the previously working v4 mapping:
 
 ```text
-vx       <- +ABS_Y
+vx       <- -ABS_Y
 vy       <- -ABS_X
 yaw_rate <- -ABS_RX
 deadzone = 0.10
@@ -81,8 +81,12 @@ current stick state
     -> expires now + command_ttl_s
 ```
 
-If the input device disconnects, the adapter stops publishing DS4 commands and
-emits both `DISCONNECTED` and `ESTOP` actions for the future safety supervisor.
+If the input device disconnects, raises a reader error, or its evdev read loop
+ends unexpectedly, the adapter stops publishing DS4 commands and emits both
+`DISCONNECTED` and `ESTOP` actions for the future safety supervisor.
+
+An intentional adapter shutdown via `stop()` is quiet and does not manufacture
+disconnect or emergency-stop actions.
 
 This deliberately replaces the v4 "idle event timeout" behavior.
 
