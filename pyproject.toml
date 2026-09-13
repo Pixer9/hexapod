@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=80", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hexapod"
+version = "0.1.0.dev0"
+description = "Raspberry Pi and Servo 2040 control software for the Hexapod robot."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "evdev==2.0.0",
+    "pyserial==3.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "pip-audit>=2.7",
+    "pip-tools>=7.4",
+    "pre-commit>=4.0",
+    "pyright>=1.1",
+    "pytest>=8.0",
+    "pytest-cov>=6.0",
+    "ruff>=0.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["hexapod*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+extend-exclude = [
+    "firmware/servo2040/legacy-backup",
+]
+
+[tool.ruff.lint]
+select = [
+    "E4",
+    "E7",
+    "E9",
+    "F",
+    "I",
+]
+
+[tool.pyright]
+include = ["src/hexapod"]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"
+reportMissingTypeStubs = false
