@@ -1,0 +1,9 @@
+{
+    "schema_version": 1,
+    "gait_id": "tripod-v1",
+    "cycle_hz": 1.0,
+    "duty_factor": 0.5,
+    "step_height_mm": 70.0,
+    "stance_z_mm": -135.0,
+    "max_foot_offset_mm": 50.0
+}
