@@ -1,0 +1,117 @@
+{
+    "schema_version": 1,
+    "profile_id": "hexapod-standard-soft-joints-v1",
+    "robot_id": "hexapod-standard-v1",
+    "angle_unit": "degree",
+    "joint_count": 18,
+    "joints": [
+        {
+            "index": 0,
+            "name": "rf_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 1,
+            "name": "rf_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 2,
+            "name": "rf_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        },
+        {
+            "index": 3,
+            "name": "rm_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 4,
+            "name": "rm_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 5,
+            "name": "rm_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        },
+        {
+            "index": 6,
+            "name": "rb_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 7,
+            "name": "rb_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 8,
+            "name": "rb_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        },
+        {
+            "index": 9,
+            "name": "lf_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 10,
+            "name": "lf_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 11,
+            "name": "lf_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        },
+        {
+            "index": 12,
+            "name": "lm_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 13,
+            "name": "lm_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 14,
+            "name": "lm_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        },
+        {
+            "index": 15,
+            "name": "lb_coxa",
+            "min_deg": -75.0,
+            "max_deg": 75.0
+        },
+        {
+            "index": 16,
+            "name": "lb_femur",
+            "min_deg": -90.0,
+            "max_deg": 38.0
+        },
+        {
+            "index": 17,
+            "name": "lb_tibia",
+            "min_deg": 15.0,
+            "max_deg": 115.0
+        }
+    ]
+}

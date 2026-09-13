@@ -34,7 +34,7 @@ class TripodGaitConfigTests(unittest.TestCase):
         self.assertEqual(config.gait_id, "tripod-v1")
         self.assertEqual(config.cycle_hz, 1.0)
         self.assertEqual(config.duty_factor, 0.5)
-        self.assertEqual(config.step_height_mm, 70.0)
+        self.assertEqual(config.step_height_mm, 30.0)
         self.assertEqual(config.stance_z_mm, -135.0)
         self.assertEqual(config.max_foot_offset_mm, 50.0)
 

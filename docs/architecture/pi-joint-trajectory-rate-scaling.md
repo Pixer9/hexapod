@@ -29,6 +29,9 @@ RobotKinematics
 18 canonical logical joint angles
         |
         v
+JointSoftLimitProfile.validate()
+        |
+        v
 JointTrajectoryRateScaler
         |
         v
@@ -38,12 +41,15 @@ future HX1 client
 Servo 2040 safety boundary
 ```
 
-Its job is to prevent the Pi's **normal commanded joint trajectory** from asking
-any canonical logical joint to move faster than the configured Pi-side design
+The soft-limit validator is the post-IK planning-envelope gate. This rate scaler
+then prevents the Pi's **normal commanded joint trajectory** from asking any
+canonical logical joint to move faster than the configured Pi-side design
 budget.
 
 It does not replace Servo 2040 hard actuator limits, watchdogs, hard-rate
 qualification, or ESTOP behavior.
+
+See `pi-joint-soft-limits.md` for the planning position envelope.
 
 ## Configuration
 
@@ -67,7 +73,7 @@ It is **not** a qualified physical servo hard limit.
 ## Canonical vector
 
 The scaler consumes the exact 18-element canonical logical joint vector produced
-by `RobotKinematics`.
+by `RobotKinematics` after that vector passes Pi soft-limit validation.
 
 The order remains:
 
@@ -89,7 +95,7 @@ Let:
 
 ```text
 q      = currently commanded 18-joint vector
-q*     = newly requested IK vector
+q*     = new soft-limit-valid IK vector
 dq     = q* - q
 R      = configured max joint rate
 dt     = elapsed control time
