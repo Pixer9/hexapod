@@ -197,6 +197,9 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual(runtime.ticks, [100])
         self.assertGreater(app.tx_errors, 0)
 
+    def test_production_loop_has_no_deliberate_millisecond_throttle(self):
+        self.assertEqual(firmware_main.LOOP_SLEEP_MS, 0)
+
 
 class DiagnosticFallbackTests(unittest.TestCase):
     def test_invalid_profile_metadata_is_protocol_safe(self):

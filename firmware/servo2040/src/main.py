@@ -8,12 +8,16 @@ The module is safe to import under CPython for host-side tests. Board-specific
 imports occur only while building the production application.
 """
 
-FIRMWARE_VERSION = "0.1.0-rc3"
+FIRMWARE_VERSION = "0.1.0-rc4"
 PROFILE_PATH = "config/actuator-profile.json"
 
 STATUS_RATE_HZ = 10
 STATUS_PERIOD_MS = 100
-LOOP_SLEEP_MS = 1
+# The RP2040 USB-CDC stdin path may expose only one newly readable character
+# per poll cycle under sustained host traffic. Do not impose an additional
+# millisecond delay between bounded scheduler iterations; USB RX work is
+# already capped by USBTextTransport.rx_budget_bytes.
+LOOP_SLEEP_MS = 0
 
 # Protocol-v1 release candidate currently advertises no optional sensor
 # capability until its acquisition path is implemented and tested.
