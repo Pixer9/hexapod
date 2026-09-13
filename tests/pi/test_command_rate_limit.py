@@ -142,6 +142,27 @@ class CommandRateLimiterTests(unittest.TestCase):
 
         self.assertEqual(result, target)
 
+    def test_nonzero_collinear_slowdown_uses_deceleration_rate(self):
+        limiter = self.make_limiter()
+        limiter.reset(
+            MotionCommand(vx_mm_s=80.0)
+        )
+
+        result = limiter.step(
+            MotionCommand(vx_mm_s=40.0),
+            0.05,
+        )
+
+        # 520 mm/s^2 for 0.05 s removes 26 mm/s.
+        self.assertAlmostEqual(
+            result.vx_mm_s,
+            54.0,
+        )
+        self.assertEqual(
+            result.vy_mm_s,
+            0.0,
+        )
+
     def test_translation_deceleration_preserves_current_direction(self):
         limiter = self.make_limiter()
         limiter.reset(
@@ -246,6 +267,46 @@ class CommandRateLimiterTests(unittest.TestCase):
                 MotionCommand(vx_mm_s=81.0),
                 0.02,
             )
+
+    def test_turn_is_time_partition_deterministic(self):
+        target = MotionCommand(
+            vx_mm_s=0.0,
+            vy_mm_s=60.0,
+        )
+
+        one_step = self.make_limiter()
+        split = self.make_limiter()
+
+        initial = MotionCommand(
+            vx_mm_s=80.0,
+            vy_mm_s=0.0,
+        )
+
+        one_step.reset(initial)
+        split.reset(initial)
+
+        result_one = one_step.step(target, 0.2)
+
+        split.step(target, 0.1)
+        result_split = split.step(target, 0.1)
+
+        self.assertAlmostEqual(
+            result_one.vx_mm_s,
+            result_split.vx_mm_s,
+        )
+        self.assertAlmostEqual(
+            result_one.vy_mm_s,
+            result_split.vy_mm_s,
+        )
+
+        self.assertAlmostEqual(
+            result_one.vx_mm_s,
+            38.4,
+        )
+        self.assertAlmostEqual(
+            result_one.vy_mm_s,
+            31.2,
+        )
 
     def test_reversal_is_time_partition_deterministic(self):
         target = MotionCommand(vx_mm_s=-80.0)

@@ -286,10 +286,25 @@ def _slew_translation(
             accel * remaining,
         )
 
-    # For targets in the same half-plane, keep translation as one Euclidean
-    # vector. Magnitude reductions use the deceleration rate; equal/increasing
-    # target magnitudes use the acceleration rate.
-    rate = decel if target_speed < current_speed else accel
+    # For a non-reversing turn, classify the entire straight command-space
+    # segment with a value whose sign cannot change as that segment is
+    # consumed. This keeps the result independent of timestep partitioning.
+    #
+    # For collinear same-direction motion this reduces to the intuitive rule:
+    # slowing down uses decel, speeding up uses accel.
+    delta_x = tx - cx
+    delta_y = ty - cy
+    target_delta_projection = (
+        tx * delta_x
+        + ty * delta_y
+    )
+
+    rate = (
+        decel
+        if target_delta_projection < 0.0
+        else accel
+    )
+
     return _move_vector_toward(
         current,
         target,
