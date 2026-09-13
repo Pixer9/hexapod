@@ -6,6 +6,7 @@ It is written to remain usable under both CPython and MicroPython.
 
 from .constants import (
     MAX_FRAME_BYTES,
+    MAX_MESSAGE_TYPE_CHARS,
     PROTOCOL_PREFIX,
     UINT32_HALF_RANGE,
     UINT32_MAX,
@@ -54,6 +55,11 @@ def _validate_seq(seq):
 def _validate_message_type(message_type):
     if not isinstance(message_type, str) or not message_type:
         raise ValueError("message type must be a non-empty string")
+
+    if len(message_type) > MAX_MESSAGE_TYPE_CHARS:
+        raise ValueError(
+            "message type exceeds %d characters" % MAX_MESSAGE_TYPE_CHARS
+        )
 
     for char in message_type:
         if not ("A" <= char <= "Z" or "0" <= char <= "9" or char == "_"):

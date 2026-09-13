@@ -31,7 +31,7 @@ from .hardware import HardwareCompatibilityError, HardwareError
 from .profile import ProfileQualificationError
 from .protocol import ProtocolError, parse_frame, sequence_is_newer
 from .state_machine import Error, Fault, State
-from .watchdogs import is_fresh, ticks_diff
+from .watchdogs import age_ms, ticks_diff
 
 
 class RuntimeErrorInternal(RuntimeError):
@@ -74,6 +74,25 @@ def _parse_session(text):
     for char in text:
         if not ("0" <= char <= "9" or "A" <= char <= "F"):
             raise ValueError("session must be uppercase hexadecimal")
+
+    return text
+
+
+_TOKEN_CHARS = (
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    "._-:"
+)
+
+
+def _parse_token(text, name):
+    if not isinstance(text, str) or not text:
+        raise ValueError("%s must be a non-empty token" % name)
+
+    for char in text:
+        if char not in _TOKEN_CHARS:
+            raise ValueError("%s contains an invalid character" % name)
 
     return text
 
@@ -174,8 +193,25 @@ class RuntimeCoordinator:
             self.protocol_errors += 1
             return ()
 
+        pre_responses = ()
+
+        # Commands that explicitly remove or replace authority are allowed to
+        # execute immediately. Everything else must first observe a watchdog
+        # deadline that may already have expired. This prevents a late
+        # HEARTBEAT or TARGET from retroactively rescuing stale authority.
+        if message_type not in ("ESTOP", "DISARM", "HELLO"):
+            try:
+                pre_responses = tuple(self.tick(now_ms))
+            except Exception:
+                self.internal_errors += 1
+                return self._safe_internal_failure(
+                    seq,
+                    message_type,
+                    now_ms,
+                )
+
         try:
-            return tuple(
+            responses = tuple(
                 self._dispatch(
                     seq,
                     message_type,
@@ -183,14 +219,13 @@ class RuntimeCoordinator:
                     now_ms,
                 )
             )
+            return pre_responses + responses
         except Exception:
             self.internal_errors += 1
-            return tuple(
-                self._fail_internal(
-                    seq,
-                    message_type,
-                    now_ms,
-                )
+            return pre_responses + self._safe_internal_failure(
+                seq,
+                message_type,
+                now_ms,
             )
 
     def _dispatch(self, seq, message_type, fields, now_ms):
@@ -596,8 +631,9 @@ class RuntimeCoordinator:
         except ValueError:
             return self._nack(seq, "ESTOP", Error.BAD_VALUE)
 
-        reason = fields[1]
-        if not reason:
+        try:
+            reason = _parse_token(fields[1], "reason")
+        except ValueError:
             return self._nack(seq, "ESTOP", Error.BAD_VALUE)
 
         self.state_machine.estop(reason, now_ms=now_ms)
@@ -772,11 +808,34 @@ class RuntimeCoordinator:
         should_enable = self.state_machine.pwm_should_be_enabled(
             now_ms
         )
-        hardware_enabled = bool(
-            getattr(self.hardware, "enabled", False)
-        )
+        hardware_enabled = getattr(self.hardware, "enabled", None)
 
-        if should_enable and not hardware_enabled:
+        if should_enable and hardware_enabled is not True:
+            # Known-disabled or unknown hardware cannot satisfy energized
+            # authority. Fault immediately and make a best-effort disable.
+            self._latch_hardware_fault(now_ms, responses)
+            try:
+                self.hardware.force_disabled()
+            except HardwareError:
+                pass
+            return tuple(responses)
+
+        if not should_enable and hardware_enabled is not False:
+            # True means definitely energized; None means the previous disable
+            # failed and the electrical state is unknown. Both require another
+            # disable attempt.
+            try:
+                self.hardware.force_disabled()
+            except HardwareError:
+                self._latch_hardware_fault(now_ms, responses)
+
+        return tuple(responses)
+
+    def _latch_hardware_fault(self, now_ms, responses):
+        """Latch one hardware fault event while allowing repeated disable tries."""
+        already_latched = self.state_machine.fault == Fault.HARDWARE
+
+        if not already_latched:
             self.state_machine.enter_fault(
                 Fault.HARDWARE,
                 now_ms=now_ms,
@@ -788,25 +847,6 @@ class RuntimeCoordinator:
                     Fault.HARDWARE,
                 )
             )
-            return tuple(responses)
-
-        if not should_enable and hardware_enabled:
-            try:
-                self.hardware.force_disabled()
-            except HardwareError:
-                self.state_machine.enter_fault(
-                    Fault.HARDWARE,
-                    now_ms=now_ms,
-                    hold_pwm=False,
-                )
-                responses.append(
-                    self.telemetry.event(
-                        "FAULT",
-                        Fault.HARDWARE,
-                    )
-                )
-
-        return tuple(responses)
 
     def status_frame(self, now_ms):
         return self.telemetry.status(
@@ -861,11 +901,11 @@ class RuntimeCoordinator:
             Fault.LINK_TIMEOUT,
             Fault.MOTION_TIMEOUT,
         ):
-            return is_fresh(
+            heartbeat_age = age_ms(
                 now_ms,
                 self.state_machine.last_heartbeat_at_ms,
-                LINK_TIMEOUT_MS,
             )
+            return 0 <= heartbeat_age < LINK_TIMEOUT_MS
 
         return False
 
@@ -921,3 +961,30 @@ class RuntimeCoordinator:
             Fault.INTERNAL,
             now_ms,
         )
+
+    def _safe_internal_failure(self, ref_seq, command, now_ms):
+        """Contain even an exception raised while reporting another failure."""
+        try:
+            return tuple(
+                self._fail_internal(
+                    ref_seq,
+                    command,
+                    now_ms,
+                )
+            )
+        except Exception:
+            try:
+                self.state_machine.enter_fault(
+                    Fault.INTERNAL,
+                    now_ms=now_ms,
+                    hold_pwm=False,
+                )
+            except Exception:
+                pass
+
+            try:
+                self.hardware.force_disabled()
+            except Exception:
+                pass
+
+            return ()

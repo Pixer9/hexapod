@@ -100,6 +100,8 @@ Duplicate and stale targets are rejected and do not refresh the motion watchdog.
 
 `TYPE` is an uppercase ASCII identifier.
 
+`TYPE` MUST NOT exceed 32 ASCII characters.
+
 Examples:
 
 ```text

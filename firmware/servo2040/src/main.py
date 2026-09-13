@@ -66,7 +66,7 @@ class SessionIdGenerator:
 class UnavailableHardware:
     """Fail-safe adapter used when real ServoCluster initialization fails."""
 
-    enabled = False
+    enabled = None
 
     def __init__(self, reason="unavailable"):
         self.reason = reason
@@ -144,7 +144,11 @@ class FirmwareApp:
 
         for raw_frame in frames:
             now_ms = self.clock.ticks_ms()
-            responses = self.runtime.handle_frame(raw_frame, now_ms)
+            try:
+                responses = self.runtime.handle_frame(raw_frame, now_ms)
+            except Exception:
+                self._latch_loop_fault(now_ms)
+                responses = ()
             self._send_frames(responses)
 
         now_ms = self.clock.ticks_ms()
@@ -262,6 +266,11 @@ def _startup_tick(time_module):
     return int(time_module.ticks_ms())
 
 
+def _disable_keyboard_interrupt(micropython_module):
+    """Reserve USB CDC input for HX1 instead of REPL Ctrl-C handling."""
+    micropython_module.kbd_intr(-1)
+
+
 def build_application():
     """Compose the production MicroPython application.
 
@@ -270,6 +279,9 @@ def build_application():
     """
     import time
     import machine
+    import micropython
+
+    _disable_keyboard_interrupt(micropython)
 
     try:
         import ubinascii
@@ -340,7 +352,15 @@ def build_application():
 
 def main():
     app = build_application()
-    app.run_forever()
+    try:
+        app.run_forever()
+    finally:
+        # KeyboardInterrupt, SystemExit, and other BaseException paths bypass
+        # normal command handling. Always make a final best-effort PWM release.
+        try:
+            app.hardware.force_disabled()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

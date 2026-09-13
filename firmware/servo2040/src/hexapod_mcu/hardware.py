@@ -45,6 +45,7 @@ class ServoOutputHardware:
 
     @property
     def enabled(self):
+        """Return True, False, or None when physical output state is unknown."""
         return self._enabled
 
     @property
@@ -103,12 +104,16 @@ class ServoOutputHardware:
         return True
 
     def force_disabled(self):
-        """Commit zero PWM on every channel and clear output authority."""
+        """Commit zero PWM on every channel and clear output authority.
+
+        ``enabled`` becomes ``None`` when the backend reports a disable failure.
+        Unknown is deliberately distinct from disabled: the safety runtime must
+        keep retrying a disable operation until it is known to have succeeded.
+        """
         try:
             self._cluster.disable_all(load=True)
         except Exception as exc:
-            self._enabled = False
-            self._last_channel_target_cd = None
+            self._enabled = None
             raise HardwareError("failed to disable ServoCluster: %s" % exc)
 
         self._enabled = False
@@ -122,8 +127,10 @@ class ServoOutputHardware:
         no previous pulse exists. Instead we stage every desired target with
         ``load=False`` and commit once.
         """
-        if self._enabled:
-            raise HardwareStateError("outputs are already enabled")
+        if self._enabled is not False:
+            raise HardwareStateError(
+                "outputs must be known-disabled before enabling"
+            )
 
         target = self._normalize_channel_target(channel_target_cd)
         self._commit_target(target)
@@ -132,9 +139,9 @@ class ServoOutputHardware:
 
     def apply_target(self, channel_target_cd):
         """Atomically update all channels while outputs are enabled."""
-        if not self._enabled:
+        if self._enabled is not True:
             raise HardwareStateError(
-                "cannot apply target while outputs are disabled"
+                "cannot apply target unless outputs are known-enabled"
             )
 
         target = self._normalize_channel_target(channel_target_cd)
@@ -155,10 +162,14 @@ class ServoOutputHardware:
             try:
                 self._cluster.disable_all(load=True)
             except Exception:
-                pass
+                # The active electrical state is no longer knowable. Preserve
+                # the previous target for diagnostics and force the runtime to
+                # keep attempting a disable.
+                self._enabled = None
+            else:
+                self._enabled = False
+                self._last_channel_target_cd = None
 
-            self._enabled = False
-            self._last_channel_target_cd = None
             raise HardwareError("ServoCluster target commit failed: %s" % exc)
 
     def _normalize_channel_target(self, target):

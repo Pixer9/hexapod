@@ -3,15 +3,17 @@
 This module owns runtime safety state and command legality only. It does not
 perform serial parsing, profile validation, PWM I/O, or servo mapping.
 
-Expected integration order in the main loop is:
+Expected integration order is:
 
-    1. receive and validate protocol frames;
-    2. apply valid commands to this state machine;
-    3. call ``poll(now_ms)`` to evaluate watchdogs;
-    4. make hardware outputs match ``pwm_should_be_enabled(now_ms)``.
+    1. receive and validate protocol framing;
+    2. evaluate already-expired watchdog deadlines before any command that can
+       refresh or extend motion authority;
+    3. apply the valid command;
+    4. periodically call ``poll(now_ms)`` and synchronize physical outputs with
+       ``pwm_should_be_enabled(now_ms)``.
 
-That ordering lets a heartbeat or target received on the current loop iteration
-refresh its watchdog before timeout evaluation.
+A command received at or after a watchdog deadline must not retroactively erase
+the timeout that has already occurred.
 """
 
 from .constants import (
@@ -266,7 +268,8 @@ class RuntimeStateMachine:
         if not self.session_matches(session_id):
             return rejected(Error.BAD_SESSION)
 
-        if not is_fresh(now_ms, self.last_heartbeat_at_ms, LINK_TIMEOUT_MS):
+        heartbeat_age = age_ms(now_ms, self.last_heartbeat_at_ms)
+        if not (0 <= heartbeat_age < LINK_TIMEOUT_MS):
             return rejected(Error.NOT_READY)
 
         self.state = State.ACTIVE
@@ -337,9 +340,14 @@ class RuntimeStateMachine:
 
         If ESTOP is already active it remains the dominant state, but the
         underlying fault code is retained so CLEAR_ESTOP cannot bypass it.
+
+        A fault grace hold may preserve an already-energized output briefly; it
+        must never energize PWM that was disabled before the fault.
         """
         if not fault_code or fault_code == Fault.NONE:
             fault_code = Fault.INTERNAL
+
+        was_energized = self.state in (State.ARMED, State.ACTIVE)
 
         self.fault = fault_code
         self._invalidate_stage()
@@ -352,7 +360,11 @@ class RuntimeStateMachine:
 
         self.state = State.FAULT
         self.fault_entered_at_ms = now_ms
-        self.fault_hold_pwm = bool(hold_pwm and self.commanded_target is not None)
+        self.fault_hold_pwm = bool(
+            hold_pwm
+            and was_energized
+            and self.commanded_target is not None
+        )
 
     def clear_fault(self, session_id, underlying_cleared):
         if self.state == State.ESTOP:
@@ -383,7 +395,7 @@ class RuntimeStateMachine:
         self.fault_entered_at_ms = now_ms
         return OK
 
-    def clear_estop(self, session_id, released, underlying_fault_cleared=True):
+    def clear_estop(self, session_id, released, underlying_fault_cleared=False):
         if self.state != State.ESTOP:
             return rejected(Error.BAD_STATE)
 
