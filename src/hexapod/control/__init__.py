@@ -1,4 +1,4 @@
-"""Robot command contracts and source arbitration."""
+"""Robot command contracts, arbitration, and normal command shaping."""
 
 from .arbitration import (
     CommandArbiter,
@@ -13,9 +13,19 @@ from .command import (
     MotionLimits,
 )
 from .loader import MotionConfigError, load_motion_limits
+from .rate_limit import (
+    CommandRateLimitConfig,
+    CommandRateLimitError,
+    CommandRateLimiter,
+    load_command_rate_limit_config,
+    parse_command_rate_limit_config,
+)
 
 __all__ = [
     "CommandArbiter",
+    "CommandRateLimitConfig",
+    "CommandRateLimitError",
+    "CommandRateLimiter",
     "CommandSample",
     "MotionCommand",
     "MotionCommandError",
@@ -24,5 +34,7 @@ __all__ = [
     "MotionLimits",
     "MotionSource",
     "SelectedMotionCommand",
+    "load_command_rate_limit_config",
     "load_motion_limits",
+    "parse_command_rate_limit_config",
 ]
