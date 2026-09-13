@@ -24,6 +24,14 @@ if sys.version_info[:2] != (3, 13):
     )
 PY
 
+# Networked verification steps use the same package-source policy as lock
+# generation and bootstrap.
+export PIP_CONFIG_FILE=/dev/null
+export PIP_INDEX_URL=https://pypi.org/simple
+unset PIP_EXTRA_INDEX_URL
+unset PIP_FIND_LINKS
+unset PIP_NO_INDEX
+
 echo "Using Python: $("$PYTHON" -c 'import sys; print(sys.executable)')"
 echo
 

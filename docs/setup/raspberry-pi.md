@@ -83,15 +83,27 @@ cd hexapod
 source .venv/bin/activate
 ```
 
+The bootstrap process currently requires Python 3.13 and installs the committed,
+hash-verified dependency lock for the selected environment. Package installation
+uses the same PyPI source policy as lock generation rather than inheriting
+machine-level pip index configuration.
+
 ## Verify
 
-Run the known-good host regression gate:
+Run the canonical full repository verification gate:
+
+```bash
+./scripts/verify.sh
+```
+
+This checks formatting, linting, CPython static analysis, all host-side
+regression tests, dependency consistency and security, and package builds.
+
+For the faster regression-test-only gate:
 
 ```bash
 ./scripts/test.sh
 ```
-
-Quality gates are documented in the repository as they are enabled.
 
 ## Device paths
 

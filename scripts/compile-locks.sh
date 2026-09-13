@@ -31,6 +31,11 @@ if ! "$PYTHON" -c 'import piptools' >/dev/null 2>&1; then
 fi
 
 export PIP_CONFIG_FILE=/dev/null
+export PIP_INDEX_URL=https://pypi.org/simple
+unset PIP_EXTRA_INDEX_URL
+unset PIP_FIND_LINKS
+unset PIP_NO_INDEX
+
 export CUSTOM_COMPILE_COMMAND="./scripts/compile-locks.sh"
 
 COMMON_ARGS=(
