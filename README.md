@@ -48,12 +48,11 @@ cd hexapod
 ./scripts/bootstrap.sh --dev
 source .venv/bin/activate
 
-./scripts/test.sh
+./scripts/verify.sh
 ```
 
 When committed lock files are present, `bootstrap.sh` uses them to reproduce the
-known dependency set. Before the first lock generation, it installs directly
-from `pyproject.toml`.
+known dependency set.
 
 ## Python package
 
@@ -66,6 +65,11 @@ src/hexapod/
 The editable development install is created by the bootstrap script.
 
 Runtime Python dependencies are declared in `pyproject.toml`.
+
+The Python wheel contains the `hexapod` package. Repository-level robot
+configuration, firmware, documentation, and hardware tooling remain part of the
+repository rather than the wheel, so the supported robot-development workflow
+is currently repository clone plus bootstrap.
 
 ## Servo 2040 firmware
 
@@ -101,11 +105,14 @@ python -m unittest discover -s tests/pi -p 'test_*.py' -v
 python -m unittest discover -s tests/contracts -p 'test_*.py' -v
 ```
 
-Or run all three using:
+Run all three using:
 
 ```bash
 ./scripts/test.sh
 ```
+
+`test.sh` uses the active Python environment by default. An interpreter may be
+selected explicitly with the `PYTHON` environment variable.
 
 The `unittest` suites remain the known-good regression gate while pytest is
 introduced as the common runner.
@@ -122,21 +129,48 @@ The development environment includes:
 - pre-commit;
 - Python package build tooling.
 
-Quality policy is intentionally staged. The active Servo 2040 firmware is
-linted, but CPython type checking initially targets `src/hexapod` only because
+The canonical full repository verification command is:
+
+```bash
+./scripts/verify.sh
+```
+
+It verifies:
+
+- working-tree whitespace;
+- Ruff formatting;
+- Ruff lint;
+- Pyright;
+- all host-side regression tests;
+- installed dependency consistency;
+- runtime dependency security;
+- development dependency security;
+- source-distribution and wheel builds.
+
+Active quality gates operate on maintained tracked Python. The archived Servo
+2040 firmware under `firmware/servo2040/legacy-backup/` is excluded.
+
+CPython type checking currently targets `src/hexapod` only because
 MicroPython/Pimoroni APIs require a separate typing strategy.
 
 ## Dependency locks
 
 `pyproject.toml` is the source of dependency intent.
 
-Exact environment locks are stored under:
+Exact hash-verified environment locks are stored under:
 
 ```text
-requirements/
+requirements/runtime.lock
+requirements/dev.lock
 ```
 
-See `requirements/README.md` for regeneration commands.
+Regenerate both through the canonical script:
+
+```bash
+./scripts/compile-locks.sh
+```
+
+See `requirements/README.md` for the lock policy.
 
 ## Hardware-in-the-loop
 
