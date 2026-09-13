@@ -47,7 +47,7 @@ class DS4MappingTests(unittest.TestCase):
 
     def test_v4_axis_signs_are_preserved_in_config(self):
         self.assertEqual(self.config.axes["vx"].code, "ABS_Y")
-        self.assertFalse(self.config.axes["vx"].invert)
+        self.assertTrue(self.config.axes["vx"].invert)
         self.assertEqual(self.config.axes["vy"].code, "ABS_X")
         self.assertTrue(self.config.axes["vy"].invert)
         self.assertEqual(self.config.axes["yaw_rate"].code, "ABS_RX")
@@ -56,15 +56,15 @@ class DS4MappingTests(unittest.TestCase):
     def test_full_axes_map_to_motion_limits(self):
         command = self.mapper.command_from_axes(
             {
-                "ABS_Y": 1.0,
-                "ABS_X": 1.0,
-                "ABS_RX": 1.0,
+                "ABS_Y": -1.0,   # physical forward
+                "ABS_X": -1.0,   # physical left
+                "ABS_RX": -1.0,  # physical left / CCW
             }
         )
 
         self.assertEqual(command.vx_mm_s, 80.0)
-        self.assertEqual(command.vy_mm_s, -60.0)
-        self.assertEqual(command.yaw_rate_deg_s, -90.0)
+        self.assertEqual(command.vy_mm_s, 60.0)
+        self.assertEqual(command.yaw_rate_deg_s, 90.0)
 
     def test_deadzone_zeroes_small_input(self):
         command = self.mapper.command_from_axes(
@@ -78,10 +78,11 @@ class DS4MappingTests(unittest.TestCase):
         self.assertTrue(command.is_zero)
 
     def test_expo_matches_v4_formula_after_deadzone_rescale(self):
-        # x=.55 with dz=.10 becomes .5 before expo.
+        # Physical forward is negative ABS_Y on this controller.
+        # x=.55 after inversion, with dz=.10, becomes .5 before expo.
         # (1-.35)*.5 + .35*(.5**3) = .36875.
         command = self.mapper.command_from_axes(
-            {"ABS_Y": 0.55}
+            {"ABS_Y": -0.55}
         )
 
         self.assertAlmostEqual(
@@ -103,7 +104,7 @@ class DS4InputStateTests(unittest.TestCase):
             device_name="Wireless Controller",
             now_s=1.0,
         )
-        self.state.update_axis("ABS_Y", 1.0, now_s=1.1)
+        self.state.update_axis("ABS_Y", -1.0, now_s=1.2)
 
         snapshot = self.state.snapshot()
 
@@ -131,7 +132,7 @@ class DS4InputStateTests(unittest.TestCase):
             now_s=1.0,
         )
         self.state.button_pressed("BTN_START", now_s=1.1)
-        self.state.update_axis("ABS_Y", 1.0, now_s=1.2)
+        self.state.update_axis("ABS_Y", -1.0, now_s=1.2)
 
         first = self.state.command_sample(now_s=2.0)
         second = self.state.command_sample(now_s=10.0)

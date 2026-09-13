@@ -3,14 +3,15 @@
 This module has no dependency on Linux evdev. Raw Linux input events are
 adapted by ``ds4_evdev.py`` and fed into the pure state/mapping objects here.
 
-The configured default axis signs preserve the known v4 controller mapping:
+The configured default axis signs have been physically verified on the
+target Raspberry Pi 5 / DualShock 4 combination:
 
-    vx       <- +ABS_Y
+    vx       <- -ABS_Y
     vy       <- -ABS_X
     yaw_rate <- -ABS_RX
 
-Those signs are configuration, not a mathematical robot invariant, because
-kernel/controller mappings must be verified on the actual target device.
+The axis bindings remain configuration rather than mathematical robot
+invariants, but these signs are the verified baseline for this hardware.
 """
 
 from __future__ import annotations

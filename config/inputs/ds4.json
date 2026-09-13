@@ -17,7 +17,7 @@
     "axes": {
         "vx": {
             "code": "ABS_Y",
-            "invert": false
+            "invert": true
         },
         "vy": {
             "code": "ABS_X",
