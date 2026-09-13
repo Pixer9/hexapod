@@ -62,7 +62,6 @@ def _validate_message_type(message_type):
 
 def _field_to_text(field):
     if isinstance(field, bool):
-        # Avoid Python's "True"/"False" accidentally entering the wire protocol.
         raise ValueError("boolean fields are not valid protocol fields")
 
     if isinstance(field, int):
@@ -143,8 +142,8 @@ def parse_frame(raw):
     Returns:
         (seq, message_type, fields)
 
-    `fields` is a tuple of strings. Message-specific semantic validation belongs
-    in the command-dispatch layer, not in this framing module.
+    ``fields`` is a tuple of strings. Message-specific semantic validation
+    belongs in the command-dispatch layer, not in this framing module.
     """
     raw = _normalize_complete_frame(raw)
 
@@ -213,8 +212,9 @@ def sequence_is_newer(candidate, previous):
 class LineFramer:
     """Bounded newline framer for a serial byte stream.
 
-    Oversized input is discarded through the next newline. The object then
-    automatically resumes collecting the following frame.
+    Oversized or explicitly aborted input is discarded through the next
+    newline. The object then automatically resumes collecting the following
+    frame.
     """
 
     def __init__(self):
@@ -226,6 +226,16 @@ class LineFramer:
         self._buffer = bytearray()
         self._discarding = False
         self.framing_errors = 0
+
+    def discard_current_line(self):
+        """Discard the current partial line through its next newline.
+
+        Used by the text USB-CDC adapter when the stream yields a non-ASCII
+        character that cannot be represented faithfully as protocol bytes.
+        """
+        self._buffer = bytearray()
+        self._discarding = True
+        self.framing_errors += 1
 
     def feed(self, data):
         """Feed bytes and return a list of complete frame byte strings."""
