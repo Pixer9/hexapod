@@ -1,0 +1,10 @@
+{
+    "schema_version": 1,
+    "profile_id": "standard-joint-trajectory-v1",
+    "units": {
+        "joint_rate": "degree_per_second"
+    },
+    "limits": {
+        "max_joint_rate_deg_s": 250.0
+    }
+}
