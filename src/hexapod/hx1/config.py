@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 
-from .protocol import PROTOCOL_MINOR, MAX_FRAME_BYTES
+from .protocol import PROTOCOL_MINOR
 
 
 class HX1ConfigError(ValueError):
@@ -19,6 +20,8 @@ class HX1ClientConfig:
     link_id: str
     transport_kind: str
     device_path: str
+    baudrate: int
+    write_timeout_s: float
     client_minor: int
     required_server_minor: int
     joint_count: int
@@ -47,6 +50,20 @@ def _nonnegative_int(value: object, name: str) -> int:
             f"{name} must be a non-negative integer"
         )
     return value
+
+
+def _positive_float(value: object, name: str) -> float:
+    if isinstance(value, bool):
+        raise HX1ConfigError(f"{name} must be a finite number > 0")
+    try:
+        result = float(value)
+    except (TypeError, ValueError) as exc:
+        raise HX1ConfigError(
+            f"{name} must be a finite number > 0"
+        ) from exc
+    if not math.isfinite(result) or result <= 0.0:
+        raise HX1ConfigError(f"{name} must be a finite number > 0")
+    return result
 
 
 def _require_exact_keys(
@@ -112,7 +129,12 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
 
     _require_exact_keys(
         transport,
-        {"kind", "device"},
+        {
+            "kind",
+            "device",
+            "baudrate",
+            "write_timeout_s",
+        },
         "transport",
     )
     _require_exact_keys(
@@ -175,8 +197,8 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
         "protocol.target_period_ms",
     )
 
-    # Contract sanity. Keep the normal Pi cadence well inside the accepted MCU
-    # watchdogs without embedding MCU safety behavior in this client.
+    # Contract sanity. Keep normal Pi cadence well inside accepted MCU
+    # watchdogs without making the Pi transport the safety authority.
     if heartbeat_period_ms >= 750:
         raise HX1ConfigError(
             "heartbeat period must be below the 750 ms link timeout"
@@ -196,6 +218,14 @@ def parse_hx1_client_config(data: object) -> HX1ClientConfig:
         device_path=_nonempty_string(
             transport["device"],
             "transport.device",
+        ),
+        baudrate=_positive_int(
+            transport["baudrate"],
+            "transport.baudrate",
+        ),
+        write_timeout_s=_positive_float(
+            transport["write_timeout_s"],
+            "transport.write_timeout_s",
         ),
         client_minor=client_minor,
         required_server_minor=required_server_minor,

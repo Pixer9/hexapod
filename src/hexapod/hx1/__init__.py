@@ -46,6 +46,11 @@ from .protocol import (
     parse_frame,
     sequence_is_newer,
 )
+from .serial_transport import (
+    HX1SerialDependencyError,
+    SerialHX1Transport,
+    create_serial_hx1_transport,
+)
 from .transport import (
     FakeHX1Transport,
     HX1Transport,
@@ -76,6 +81,7 @@ __all__ = [
     "HX1PeerMismatchError",
     "HX1ProtocolError",
     "HX1Sequence",
+    "HX1SerialDependencyError",
     "HX1SessionError",
     "HX1Status",
     "HX1Transport",
@@ -87,9 +93,11 @@ __all__ = [
     "MAX_FRAME_BYTES",
     "PROTOCOL_MAJOR",
     "PROTOCOL_MINOR",
+    "SerialHX1Transport",
     "UINT32_MAX",
     "ZERO_SESSION",
     "crc16_ccitt_false",
+    "create_serial_hx1_transport",
     "degrees_to_centidegrees",
     "encode_frame",
     "joint_degrees_to_centidegrees",

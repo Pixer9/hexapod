@@ -3,7 +3,9 @@
     "link_id": "servo2040-usb-v1",
     "transport": {
         "kind": "usb_cdc_serial",
-        "device": "/dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_e661410403724132-if00"
+        "device": "/dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_e661410403724132-if00",
+        "baudrate": 115200,
+        "write_timeout_s": 0.25
     },
     "protocol": {
         "client_minor": 1,

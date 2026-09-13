@@ -1,6 +1,6 @@
 # Pi HX1 Transport Boundary
 
-**Status:** Deterministic raw-byte transport contract and fake implementation
+**Status:** Deterministic fake transport plus physical pyserial adapter
 
 ## Purpose
 
@@ -49,8 +49,8 @@ transport.read(max_bytes=4096) -> bytes
 
 `open()` and `close()` are idempotent.
 
-`write()` accepts raw `bytes` or `bytearray` and returns the number of bytes
-accepted.
+`write()` accepts raw `bytes` or `bytearray` and returns only after the complete
+supplied byte sequence has been accepted by the local transport backend.
 
 `read()` is non-blocking. It returns:
 
@@ -63,10 +63,10 @@ Complete-line reconstruction belongs to `HX1LineFramer`.
 
 ## Layer composition
 
-The future runtime/link layer will compose the pieces as:
+The future runtime/link layer composes the pieces as:
 
 ```text
-serial/read bytes
+serial bytes
     |
     v
 HX1Transport.read()
@@ -75,7 +75,7 @@ HX1Transport.read()
 HX1LineFramer.feed()
     |
     v
-complete frame bytes
+complete HX1 frame bytes
     |
     v
 HX1ClientCore.accept_frame()
@@ -93,8 +93,8 @@ HX1Outbound.frame
 HX1Transport.write()
 ```
 
-This design keeps framing deterministic even when USB CDC divides one HX1 frame
-across multiple reads or returns multiple complete frames in one read.
+This keeps framing deterministic when USB CDC divides one HX1 frame across
+multiple reads or combines multiple frames in one read.
 
 ## Fake transport
 
@@ -115,56 +115,109 @@ It has no background activity and no implicit simulated MCU.
 If a test wants an `INFO`, `ACK`, `NACK`, `STATUS`, or `EVENT`, the test must
 explicitly inject those bytes.
 
-This makes protocol tests reproducible and prevents fake behavior from hiding
-missing runtime logic.
+## Physical serial transport
 
-## Closed-state behavior
+`SerialHX1Transport` is the Raspberry Pi Linux implementation.
 
-Normal read/write operations against a closed transport raise:
+It uses pyserial but imports that dependency lazily. Pure HX1 modules and unit
+tests therefore do not require pyserial merely to import `hexapod.hx1`.
 
-```text
-HX1TransportClosedError
-```
-
-Test-side peer injection is allowed while the fake transport is closed so a
-deterministic response may be scripted before opening the link.
-
-Closing the fake does not discard queued bytes. Connection-lifecycle policy
-belongs to the future link/reconnect layer, not the raw transport.
-
-## Real serial implementation
-
-The next implementation will be:
+The physical device path comes from:
 
 ```text
-SerialHX1Transport
+config/hardware/servo2040.json
 ```
 
-using the configured stable device:
+and is currently:
 
 ```text
 /dev/serial/by-id/usb-MicroPython_Board_in_FS_mode_e661410403724132-if00
 ```
 
-The real adapter must preserve this contract, including non-blocking reads.
+The adapter never depends on `/dev/ttyACM0`.
 
-It will not:
+Current serial settings:
 
-- create sessions;
-- schedule heartbeats;
-- schedule targets;
-- retry commands;
-- automatically reconnect;
-- ARM or START the MCU.
+```text
+baudrate       115200
+read timeout   0 seconds
+write timeout  0.25 seconds
+exclusive      true
+software flow  disabled
+RTS/CTS        disabled
+DSR/DTR        disabled
+```
 
-Those behaviors belong above the raw transport boundary.
+The baudrate is the host-side CDC line-coding value. The Servo 2040
+MicroPython USB CDC implementation exposes the link through `sys.stdin` and
+`sys.stdout`; it does not implement a physical UART baud clock.
+
+The zero read timeout is not configurable because the `HX1Transport` contract
+requires non-blocking reads.
+
+Exclusive access is requested on Linux so another process cannot silently share
+the Servo 2040 control link.
+
+## Short writes
+
+The transport contract requires a complete supplied byte sequence to be
+accepted locally.
+
+If pyserial reports a short write, `SerialHX1Transport` continues writing the
+remaining bytes until either:
+
+- all bytes have been accepted; or
+- the backend fails or stops making forward progress.
+
+A zero-progress write is treated as a transport error rather than retried
+forever.
+
+A successful local write does not mean the MCU accepted the HX1 command.
+
+## Errors
+
+Closed-state I/O raises:
+
+```text
+HX1TransportClosedError
+```
+
+Physical open/read/write/close failures are surfaced as:
+
+```text
+HX1TransportError
+```
+
+If the production adapter is opened without pyserial installed, it raises:
+
+```text
+HX1SerialDependencyError
+```
+
+The raw transport does not automatically reconnect after failure.
+
+Reconnect/session-replacement behavior belongs to the future HX1 link/runtime
+layer.
+
+## Dependency
+
+The Raspberry Pi project venv will require:
+
+```text
+pyserial
+```
+
+before physical serial use.
+
+The dependency does not need to be installed to run fake-transport or protocol
+tests because the import is lazy.
 
 ## Safety
 
 The transport is not a safety authority.
 
-A successful write means only that bytes were accepted by the local transport
-implementation. It does not mean:
+A successful write means only that bytes were accepted by the local serial
+backend. It does not mean:
 
 - the MCU parsed the frame;
 - the MCU accepted the command;
@@ -173,3 +226,6 @@ implementation. It does not mean:
 - a target was applied.
 
 Those truths come only from HX1 protocol semantics and MCU state/telemetry.
+
+`SerialHX1Transport` itself never creates a session, sends a heartbeat, sends a
+target, arms the MCU, starts motion, or reconnects automatically.

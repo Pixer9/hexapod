@@ -1,6 +1,6 @@
 # Pi HX1 Client Core
 
-**Status:** Initial transport-independent implementation baseline
+**Status:** Transport-independent client core with raw-byte transport adapters
 
 ## Purpose
 
@@ -36,15 +36,16 @@ HX1ClientCore
     v
 HX1Transport
     |
-    v
-future SerialHX1Transport
+    +---- FakeHX1Transport
+    |
+    +---- SerialHX1Transport
     |
     v
 Servo 2040
 ```
 
-The HX1 client core deliberately contains **no serial I/O** and does not
-energize hardware.
+The HX1 client core itself contains **no serial I/O** and does not energize
+hardware.
 
 It implements:
 
@@ -61,9 +62,7 @@ It implements:
 - expected joint-count verification;
 - zero-session ESTOP construction.
 
-Raw byte I/O is now defined separately by the HX1 transport boundary. The
-current implementation includes a deterministic fake transport; the physical
-USB CDC serial adapter remains a later layer.
+Raw byte I/O is defined separately by the HX1 transport boundary.
 
 ## Configuration
 
@@ -80,6 +79,15 @@ The configured device is the stable by-id path:
 ```
 
 The Pi does not depend on `/dev/ttyACM0`.
+
+Transport baseline:
+
+```text
+kind               usb_cdc_serial
+baudrate           115200
+write timeout      0.25 s
+read timeout       0 s (fixed by non-blocking transport contract)
+```
 
 Protocol timing baseline:
 
@@ -209,10 +217,9 @@ It is never labeled measured/actual servo position.
 
 ## Deliberate non-goals of this layer
 
-The client core does not own:
+The client/transport layers do not yet own:
 
-- physical serial-port implementation;
-- reader/writer threads;
+- a background reader/writer loop;
 - reconnect policy;
 - heartbeat scheduling;
 - 50 Hz target scheduling;
@@ -232,6 +239,6 @@ The current Servo 2040 actuator profile is structurally valid but still has
 
 Therefore it is intentionally **not arm-qualified**.
 
-HX1 development, HELLO/INFO negotiation, parsing, and transport testing can
-proceed, but physical ARM/walking must remain blocked until the actuator profile
-is physically qualified and revised.
+HX1 development, HELLO/INFO negotiation, parsing, and serial transport testing
+can proceed, but physical ARM/walking must remain blocked until the actuator
+profile is physically qualified and revised.
