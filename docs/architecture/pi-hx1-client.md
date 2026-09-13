@@ -1,6 +1,6 @@
 # Pi HX1 Client Core
 
-**Status:** Transport-independent client core with raw-byte transport adapters
+**Status:** Transport-independent client core with synchronous link composition
 
 ## Purpose
 
@@ -34,6 +34,9 @@ JointTrajectoryRateScaler
 HX1ClientCore
     |
     v
+HX1Link
+    |
+    v
 HX1Transport
     |
     +---- FakeHX1Transport
@@ -62,7 +65,8 @@ It implements:
 - expected joint-count verification;
 - zero-session ESTOP construction.
 
-Raw byte I/O is defined separately by the HX1 transport boundary.
+`HX1Link` now composes the client core, line framer, and raw transport
+synchronously. It still owns no scheduler or automatic robot lifecycle.
 
 ## Configuration
 
@@ -217,7 +221,7 @@ It is never labeled measured/actual servo position.
 
 ## Deliberate non-goals of this layer
 
-The client/transport layers do not yet own:
+The client/link/transport layers do not yet own:
 
 - a background reader/writer loop;
 - reconnect policy;
@@ -229,8 +233,9 @@ The client/transport layers do not yet own:
 - automatic ARM/START transitions;
 - physical servo qualification.
 
-The raw transport contract is documented separately in
-`pi-hx1-transport.md`.
+The raw transport contract is documented in `pi-hx1-transport.md`.
+
+The synchronous composition layer is documented in `pi-hx1-link.md`.
 
 ## Current physical-arm limitation
 
@@ -239,6 +244,6 @@ The current Servo 2040 actuator profile is structurally valid but still has
 
 Therefore it is intentionally **not arm-qualified**.
 
-HX1 development, HELLO/INFO negotiation, parsing, and serial transport testing
-can proceed, but physical ARM/walking must remain blocked until the actuator
-profile is physically qualified and revised.
+HX1 development, HELLO/INFO negotiation, parsing, link pumping, and serial
+transport testing can proceed, but physical ARM/walking must remain blocked
+until the actuator profile is physically qualified and revised.

@@ -14,6 +14,10 @@ from .config import (
     load_hx1_client_config,
     parse_hx1_client_config,
 )
+from .link import (
+    HX1Link,
+    HX1LinkError,
+)
 from .messages import (
     HX1Ack,
     HX1Event,
@@ -74,6 +78,8 @@ __all__ = [
     "HX1Info",
     "HX1Inbound",
     "HX1LineFramer",
+    "HX1Link",
+    "HX1LinkError",
     "HX1MessageError",
     "HX1Nack",
     "HX1Outbound",
