@@ -34,13 +34,16 @@ JointTrajectoryRateScaler
 HX1ClientCore
     |
     v
-future USB CDC serial transport
+HX1Transport
+    |
+    v
+future SerialHX1Transport
     |
     v
 Servo 2040
 ```
 
-This first HX1 layer deliberately contains **no serial I/O** and does not
+The HX1 client core deliberately contains **no serial I/O** and does not
 energize hardware.
 
 It implements:
@@ -58,7 +61,9 @@ It implements:
 - expected joint-count verification;
 - zero-session ESTOP construction.
 
-A later layer will add the real USB CDC serial adapter and runtime scheduling.
+Raw byte I/O is now defined separately by the HX1 transport boundary. The
+current implementation includes a deterministic fake transport; the physical
+USB CDC serial adapter remains a later layer.
 
 ## Configuration
 
@@ -204,10 +209,9 @@ It is never labeled measured/actual servo position.
 
 ## Deliberate non-goals of this layer
 
-This layer does not yet own:
+The client core does not own:
 
-- pyserial or another serial library;
-- opening the Servo 2040 device;
+- physical serial-port implementation;
 - reader/writer threads;
 - reconnect policy;
 - heartbeat scheduling;
@@ -218,8 +222,8 @@ This layer does not yet own:
 - automatic ARM/START transitions;
 - physical servo qualification.
 
-Those responsibilities are added only after the pure protocol/session boundary
-is proven.
+The raw transport contract is documented separately in
+`pi-hx1-transport.md`.
 
 ## Current physical-arm limitation
 
@@ -228,6 +232,6 @@ The current Servo 2040 actuator profile is structurally valid but still has
 
 Therefore it is intentionally **not arm-qualified**.
 
-HX1 development, HELLO/INFO negotiation, parsing, and fake-transport testing can
+HX1 development, HELLO/INFO negotiation, parsing, and transport testing can
 proceed, but physical ARM/walking must remain blocked until the actuator profile
 is physically qualified and revised.

@@ -46,8 +46,16 @@ from .protocol import (
     parse_frame,
     sequence_is_newer,
 )
+from .transport import (
+    FakeHX1Transport,
+    HX1Transport,
+    HX1TransportClosedError,
+    HX1TransportError,
+    HX1TransportValueError,
+)
 
 __all__ = [
+    "FakeHX1Transport",
     "HX1Ack",
     "HX1CRCError",
     "HX1ClientConfig",
@@ -70,6 +78,10 @@ __all__ = [
     "HX1Sequence",
     "HX1SessionError",
     "HX1Status",
+    "HX1Transport",
+    "HX1TransportClosedError",
+    "HX1TransportError",
+    "HX1TransportValueError",
     "HX1UnexpectedResponseError",
     "HX1UnknownMessage",
     "MAX_FRAME_BYTES",
