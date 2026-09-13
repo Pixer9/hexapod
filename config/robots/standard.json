@@ -1,0 +1,79 @@
+{
+    "schema_version": 1,
+    "robot_id": "hexapod-standard-v1",
+    "description": "Standard six-leg hexapod geometry migrated from the proven v4 model.",
+    "units": {
+        "length": "millimeter",
+        "angle": "degree"
+    },
+    "leg_order": [
+        "RF",
+        "RM",
+        "RB",
+        "LF",
+        "LM",
+        "LB"
+    ],
+    "links_mm": {
+        "coxa": 41.0,
+        "femur": 116.0,
+        "tibia": 183.0
+    },
+    "leg_mounts": {
+        "RF": {
+            "position_body_mm": [
+                74.24621202458748,
+                -74.24621202458748,
+                0.0
+            ],
+            "yaw_deg": -45.0
+        },
+        "RM": {
+            "position_body_mm": [
+                0.0,
+                -105.0,
+                0.0
+            ],
+            "yaw_deg": -90.0
+        },
+        "RB": {
+            "position_body_mm": [
+                -74.24621202458748,
+                -74.24621202458748,
+                0.0
+            ],
+            "yaw_deg": -135.0
+        },
+        "LF": {
+            "position_body_mm": [
+                74.24621202458748,
+                74.24621202458748,
+                0.0
+            ],
+            "yaw_deg": 45.0
+        },
+        "LM": {
+            "position_body_mm": [
+                0.0,
+                105.0,
+                0.0
+            ],
+            "yaw_deg": 90.0
+        },
+        "LB": {
+            "position_body_mm": [
+                -74.24621202458748,
+                74.24621202458748,
+                0.0
+            ],
+            "yaw_deg": 135.0
+        }
+    },
+    "reference_stance": {
+        "neutral_foot_leg_mm": [
+            200.0,
+            0.0,
+            -115.0
+        ]
+    }
+}
