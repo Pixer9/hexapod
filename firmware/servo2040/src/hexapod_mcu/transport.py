@@ -67,7 +67,14 @@ class BufferedUSBCDCTransport:
         )
         self._framer = framer if framer is not None else LineFramer()
         self._rx_buffer = bytearray(self._rx_budget_bytes)
-        self._tx_pending = bytearray()
+
+        # Keep outbound frames immutable once handed to CDC. Partial writes
+        # advance an offset into the head frame instead of resizing a shared
+        # bytearray after write().
+        self._tx_frames = []
+        self._tx_head_offset = 0
+        self._tx_pending_count = 0
+
         self._host_connected = False
 
         self.read_errors = 0
@@ -89,7 +96,7 @@ class BufferedUSBCDCTransport:
 
     @property
     def tx_pending_bytes(self):
-        return len(self._tx_pending)
+        return self._tx_pending_count
 
     @property
     def host_connected(self):
@@ -151,12 +158,13 @@ class BufferedUSBCDCTransport:
         # iteration. New frame bytes must remain ordered after older pending data.
         self._flush_tx_pending()
 
-        if len(self._tx_pending) + len(frame) > self._tx_queue_limit:
+        if self._tx_pending_count + len(frame) > self._tx_queue_limit:
             self.write_errors += 1
             self.tx_overflow_errors += 1
             raise TransportError("USB CDC TX queue capacity exceeded")
 
-        self._tx_pending.extend(frame)
+        self._tx_frames.append(frame)
+        self._tx_pending_count += len(frame)
         self._flush_tx_pending()
 
     def _validate_frame(self, frame):
@@ -192,10 +200,15 @@ class BufferedUSBCDCTransport:
             # host disconnect/reconnect boundary. Reset the framer immediately
             # so the first frame after a reconnect is not discarded.
             self._reset_framer_boundary()
-            self._tx_pending = bytearray()
+            self._clear_tx_pending()
             self._host_connected = connected
 
         return connected
+
+    def _clear_tx_pending(self):
+        self._tx_frames = []
+        self._tx_head_offset = 0
+        self._tx_pending_count = 0
 
     def _reset_framer_boundary(self):
         errors = getattr(self._framer, "framing_errors", 0)
@@ -212,15 +225,18 @@ class BufferedUSBCDCTransport:
         self._framer.discard_current_line()
 
     def _flush_tx_pending(self):
-        if not self._tx_pending:
+        if not self._tx_frames:
             return
 
         if not self._connection_is_active():
             self._sync_connection_state()
             return
 
+        head = self._tx_frames[0]
+        chunk = head[self._tx_head_offset :]
+
         try:
-            written = self._cdc.write(self._tx_pending)
+            written = self._cdc.write(chunk)
         except Exception as exc:
             self.write_errors += 1
             raise TransportError("USB CDC write failed: %s" % exc)
@@ -232,13 +248,20 @@ class BufferedUSBCDCTransport:
             isinstance(written, bool)
             or not isinstance(written, int)
             or written < 0
-            or written > len(self._tx_pending)
+            or written > len(chunk)
         ):
             self.write_errors += 1
             raise TransportError("USB CDC write returned an invalid byte count")
 
-        if written:
-            del self._tx_pending[:written]
+        if not written:
+            return
+
+        self._tx_head_offset += written
+        self._tx_pending_count -= written
+
+        if self._tx_head_offset == len(head):
+            self._tx_frames.pop(0)
+            self._tx_head_offset = 0
 
 
 def create_buffered_usb_cdc_transport(

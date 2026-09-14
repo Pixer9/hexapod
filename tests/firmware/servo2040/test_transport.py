@@ -23,6 +23,7 @@ class FakeCDC:
         self.dtr = True
         self.incoming = bytearray(incoming)
         self.written = bytearray()
+        self.write_args = []
         self.read_sizes = []
         self.poll_calls = 0
         self.write_limit = None
@@ -56,6 +57,10 @@ class FakeCDC:
     def write(self, data):
         if self.fail_write:
             raise OSError("injected write failure")
+
+        # Retain the exact object passed by the transport. This catches
+        # transports that mutate or resize a buffer after write() returns.
+        self.write_args.append(data)
 
         if self.write_limit is None:
             count = len(data)
@@ -168,6 +173,8 @@ class SendTests(unittest.TestCase):
 
         self.assertEqual(bytes(cdc.written), frame)
         self.assertEqual(transport.tx_pending_bytes, 0)
+        self.assertEqual(cdc.write_args, [frame])
+        self.assertIsInstance(cdc.write_args[0], bytes)
 
     def test_partial_write_is_queued_and_drained_without_reordering(self):
         first = encode_frame(7, "ACK", 6, "ARM")
@@ -182,6 +189,11 @@ class SendTests(unittest.TestCase):
             transport.poll_frames()
 
         self.assertEqual(bytes(cdc.written), first + second)
+        self.assertTrue(cdc.write_args)
+        self.assertTrue(
+            all(isinstance(write_arg, bytes) for write_arg in cdc.write_args)
+        )
+        self.assertEqual(cdc.write_args[0], first)
 
     def test_disconnected_frames_are_dropped_not_replayed(self):
         stale = encode_frame(7, "ACK", 6, "ARM")
