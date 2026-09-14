@@ -8,11 +8,10 @@ The module is safe to import under CPython for host-side tests. Board-specific
 imports occur only while building the production application.
 """
 
-FIRMWARE_VERSION = "0.1.0-rc4"
+FIRMWARE_VERSION = "0.1.0-rc5"
 PROFILE_PATH = "config/actuator-profile.json"
 
-STATUS_RATE_HZ = 10
-STATUS_PERIOD_MS = 100
+STATUS_PERIOD_MS = None
 LOOP_SLEEP_MS = 1
 
 # Protocol-v1 release candidate currently advertises no optional sensor
@@ -121,12 +120,12 @@ class FirmwareApp:
         clock,
         status_period_ms=STATUS_PERIOD_MS,
     ):
-        if (
+        if status_period_ms is not None and (
             isinstance(status_period_ms, bool)
             or not isinstance(status_period_ms, int)
             or status_period_ms <= 0
         ):
-            raise ValueError("status_period_ms must be a positive integer")
+            raise ValueError("status_period_ms must be None or a positive integer")
 
         self.runtime = runtime
         self.transport = transport
@@ -181,6 +180,9 @@ class FirmwareApp:
             self.clock.sleep_ms(LOOP_SLEEP_MS)
 
     def _status_due(self, now_ms):
+        if self.status_period_ms is None:
+            return False
+
         if self.last_status_ms is None:
             return True
 

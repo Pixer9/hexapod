@@ -197,10 +197,27 @@ class SchedulerTests(unittest.TestCase):
         self.assertEqual(runtime.ticks, [100])
         self.assertGreater(app.tx_errors, 0)
 
+    def test_periodic_status_is_disabled_by_default(self):
+        runtime = FakeRuntime()
+        hardware = FakeHardware()
+        transport = FakeTransport()
+        clock = FakeClock(100)
+
+        app = firmware_main.FirmwareApp(
+            runtime=runtime,
+            transport=transport,
+            hardware=hardware,
+            clock=clock,
+        )
+
+        app.run_once()
+
+        self.assertEqual(runtime.statuses, [])
+
 
 class ReleaseCandidateTests(unittest.TestCase):
-    def test_firmware_version_is_rc4(self):
-        self.assertEqual(firmware_main.FIRMWARE_VERSION, "0.1.0-rc4")
+    def test_firmware_version_is_rc5(self):
+        self.assertEqual(firmware_main.FIRMWARE_VERSION, "0.1.0-rc5")
 
     def test_scheduler_keeps_one_millisecond_idle(self):
         self.assertEqual(firmware_main.LOOP_SLEEP_MS, 1)

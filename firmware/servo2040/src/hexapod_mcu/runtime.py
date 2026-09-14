@@ -29,7 +29,7 @@ from .actuators import (
 from .constants import JOINT_COUNT, LINK_TIMEOUT_MS, UINT32_MAX
 from .hardware import HardwareCompatibilityError, HardwareError
 from .profile import ProfileQualificationError
-from .protocol import ProtocolError, parse_frame, sequence_is_newer
+from .protocol import ProtocolError, parse_command_frame, sequence_is_newer
 from .state_machine import Error, Fault, State
 from .watchdogs import age_ms, ticks_diff
 
@@ -39,10 +39,13 @@ class RuntimeErrorInternal(RuntimeError):
 
 
 def _parse_uint32(text, name):
-    if not isinstance(text, str) or not text or not text.isdigit():
+    if isinstance(text, int) and not isinstance(text, bool):
+        value = text
+    elif isinstance(text, str) and text and text.isdigit():
+        value = int(text)
+    else:
         raise ValueError("%s must be unsigned decimal" % name)
 
-    value = int(text)
     if value < 0 or value > UINT32_MAX:
         raise ValueError("%s outside uint32 range" % name)
 
@@ -95,6 +98,15 @@ def _parse_token(text, name):
 def _parse_joint_vector(fields):
     if len(fields) != JOINT_COUNT:
         raise ValueError("joint vector has wrong length")
+
+    # Binary HX1 STAGE/TARGET decoding already produced signed integer
+    # centidegrees with an exact 18-value payload shape. Validate the native
+    # values without converting them back to decimal text and reparsing them.
+    if fields and isinstance(fields[0], int):
+        for value in fields:
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise ValueError("joint vector contains a non-integer value")
+        return tuple(fields)
 
     out = []
     for index, text in enumerate(fields):
@@ -181,7 +193,7 @@ class RuntimeCoordinator:
 
     def handle_frame(self, raw_frame, now_ms):
         try:
-            seq, message_type, fields = parse_frame(raw_frame)
+            seq, message_type, fields = parse_command_frame(raw_frame)
         except ProtocolError:
             self.protocol_errors += 1
             return ()

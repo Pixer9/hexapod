@@ -5,6 +5,16 @@
 **Protocol minor:** 1  
 **Date:** 2026-09-12
 
+> **rc5 wire-format amendment:** Beginning with Servo 2040 firmware
+> `0.1.0-rc5`, Pi-to-MCU authority-bearing commands use the compact binary
+> command representation defined by ADR 0009. MCU-to-Pi INFO, ACK, NACK,
+> EVENT, and STATUS representations remain ASCII HX1. ASCII command examples
+> in this document should therefore be read as logical/diagnostic notation;
+> ADR 0009 is authoritative for the Pi-to-MCU wire representation.
+>
+> Unsolicited periodic STATUS emission is disabled by default in rc5.
+> `GET_STATUS` continues to provide explicit status retrieval.
+
 ## 1. Purpose
 
 This document defines the version 1 control and telemetry protocol between the Raspberry Pi 5 and the Pimoroni Servo 2040.

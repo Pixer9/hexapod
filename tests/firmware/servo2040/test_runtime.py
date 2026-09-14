@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import struct
 import sys
 import unittest
 from pathlib import Path
@@ -25,7 +26,14 @@ from hexapod_mcu.profile import (  # noqa: E402
     load_profile,
     parse_profile_bytes,
 )
-from hexapod_mcu.protocol import encode_frame, parse_frame  # noqa: E402
+from hexapod_mcu.protocol import (  # noqa: E402
+    COMMAND_HEADER_FORMAT,
+    COMMAND_MAGIC,
+    COMMAND_WIRE_VERSION,
+    crc16_ccitt_false,
+    encode_frame,
+    parse_frame,
+)
 from hexapod_mcu.runtime import RuntimeCoordinator  # noqa: E402
 from hexapod_mcu.state_machine import (  # noqa: E402
     Fault,
@@ -305,17 +313,32 @@ class FramingTests(unittest.TestCase):
         self.assertEqual(responses, ())
         self.assertEqual(runtime.protocol_errors, 1)
 
-    def test_unknown_command_gets_unsupported_nack(self):
+    def test_unknown_binary_command_gets_unsupported_nack(self):
         runtime, _, _ = make_runtime()
 
-        responses = send(
-            runtime,
-            1,
-            "DANCE",
-            now_ms=10,
+        body = struct.pack(
+            COMMAND_HEADER_FORMAT,
+            COMMAND_MAGIC,
+            COMMAND_WIRE_VERSION,
+            0x7F,  # deliberately unknown command ID
+            0,  # payload length
+            1,  # sequence
+            SESSION_INT,
+        )
+        frame = body + struct.pack(
+            "<H",
+            crc16_ccitt_false(body),
         )
 
-        self.assertEqual(response_types(responses), ("NACK",))
+        responses = runtime.handle_frame(
+            frame,
+            10,
+        )
+
+        self.assertEqual(
+            response_types(responses),
+            ("NACK",),
+        )
         self.assertEqual(
             response_fields(responses[0])[-1],
             "ERR_UNSUPPORTED",
