@@ -8,7 +8,7 @@ The module is safe to import under CPython for host-side tests. Board-specific
 imports occur only while building the production application.
 """
 
-FIRMWARE_VERSION = "0.1.0-rc5"
+FIRMWARE_VERSION = "0.1.0-rc6"
 PROFILE_PATH = "config/actuator-profile.json"
 
 STATUS_PERIOD_MS = None
@@ -17,6 +17,92 @@ LOOP_SLEEP_MS = 1
 # Protocol-v1 release candidate currently advertises no optional sensor
 # capability until its acquisition path is implemented and tested.
 CAPABILITIES = 0x00000000
+
+# Binary command IDs are frozen by ADR 0009.
+_BINARY_TARGET_COMMAND_ID = 6
+_BINARY_STOP_COMMAND_ID = 7
+_BINARY_DISARM_COMMAND_ID = 8
+_BINARY_ESTOP_COMMAND_ID = 9
+
+_AUTHORITY_REMOVAL_COMMAND_IDS = (
+    _BINARY_STOP_COMMAND_ID,
+    _BINARY_DISARM_COMMAND_ID,
+    _BINARY_ESTOP_COMMAND_ID,
+)
+
+
+def _binary_command_id(raw_frame):
+    """Return a binary HX1 command ID for scheduler hints, or None.
+
+    This does not grant command authority. Runtime parsing still performs the
+    authoritative structural and CRC validation before any command executes.
+    """
+    if not isinstance(raw_frame, (bytes, bytearray)):
+        return None
+
+    if len(raw_frame) < 4:
+        return None
+
+    if raw_frame[0] != 0x48 or raw_frame[1] != 0x58:  # b"HX"
+        return None
+
+    if raw_frame[2] != 1:  # binary command wire version
+        return None
+
+    return raw_frame[3]
+
+
+def _select_frames_for_processing(frames):
+    """Drop obsolete realtime TARGET work from one bounded RX batch."""
+    frames = tuple(frames)
+
+    # STOP, DISARM, and ESTOP make any older unprocessed TARGETs obsolete.
+    # Never delay an authority-removal command to apply stale motion first.
+    first_removal_index = None
+
+    for index, raw_frame in enumerate(frames):
+        if _binary_command_id(raw_frame) in _AUTHORITY_REMOVAL_COMMAND_IDS:
+            first_removal_index = index
+            break
+
+    if first_removal_index is not None:
+        selected = []
+
+        for index, raw_frame in enumerate(frames):
+            if (
+                index < first_removal_index
+                and _binary_command_id(raw_frame) == _BINARY_TARGET_COMMAND_ID
+            ):
+                continue
+
+            selected.append(raw_frame)
+
+        return tuple(selected)
+
+    # With no authority-removal command pending, only the newest TARGET in the
+    # batch matters. Sequence gaps are legal and rate validation uses elapsed
+    # time, so intermediate stale targets need not consume MCU runtime.
+    newest_target_index = None
+
+    for index, raw_frame in enumerate(frames):
+        if _binary_command_id(raw_frame) == _BINARY_TARGET_COMMAND_ID:
+            newest_target_index = index
+
+    if newest_target_index is None:
+        return frames
+
+    selected = []
+
+    for index, raw_frame in enumerate(frames):
+        if (
+            _binary_command_id(raw_frame) == _BINARY_TARGET_COMMAND_ID
+            and index != newest_target_index
+        ):
+            continue
+
+        selected.append(raw_frame)
+
+    return tuple(selected)
 
 
 class SessionIdGenerator:
@@ -145,6 +231,8 @@ class FirmwareApp:
         except Exception:
             self._latch_loop_fault()
             frames = ()
+
+        frames = _select_frames_for_processing(frames)
 
         for raw_frame in frames:
             now_ms = self.clock.ticks_ms()

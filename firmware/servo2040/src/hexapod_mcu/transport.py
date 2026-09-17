@@ -16,7 +16,7 @@ This module performs framing only. CRC and command parsing remain in
 from .constants import MAX_FRAME_BYTES
 from .protocol import LineFramer
 
-DEFAULT_RX_BUDGET_BYTES = 512
+DEFAULT_RX_BUDGET_BYTES = 4096
 DEFAULT_CDC_RX_BUFFER_BYTES = 4096
 DEFAULT_CDC_TX_BUFFER_BYTES = 4096
 DEFAULT_TX_QUEUE_BYTES = 4096

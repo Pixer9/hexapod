@@ -154,6 +154,94 @@ class SchedulerTests(unittest.TestCase):
         self.assertGreaterEqual(len(transport.sent), 2)  # ACK + first STATUS
         self.assertEqual(parse_frame(transport.sent[0])[1], "ACK")
 
+    def test_target_burst_keeps_only_newest_target(self):
+        session = "A1B2C3D4"
+        joints = (0,) * 18
+
+        first = encode_frame(
+            1,
+            "TARGET",
+            session,
+            20,
+            *joints,
+        )
+        second = encode_frame(
+            2,
+            "TARGET",
+            session,
+            20,
+            *joints,
+        )
+        heartbeat = encode_frame(
+            3,
+            "HEARTBEAT",
+            session,
+            100,
+        )
+
+        app, runtime, _, _, _ = self.make_app(
+            (
+                first,
+                second,
+                heartbeat,
+            )
+        )
+
+        app.run_once()
+
+        handled = [parse_frame(raw_frame)[:2] for raw_frame, _ in runtime.handled]
+
+        self.assertEqual(
+            handled,
+            [
+                (2, "TARGET"),
+                (3, "HEARTBEAT"),
+            ],
+        )
+
+    def test_stop_discards_older_queued_targets(self):
+        session = "A1B2C3D4"
+        joints = (0,) * 18
+
+        first = encode_frame(
+            1,
+            "TARGET",
+            session,
+            20,
+            *joints,
+        )
+        second = encode_frame(
+            2,
+            "TARGET",
+            session,
+            20,
+            *joints,
+        )
+        stop = encode_frame(
+            3,
+            "STOP",
+            session,
+        )
+
+        app, runtime, _, _, _ = self.make_app(
+            (
+                first,
+                second,
+                stop,
+            )
+        )
+
+        app.run_once()
+
+        handled = [parse_frame(raw_frame)[:2] for raw_frame, _ in runtime.handled]
+
+        self.assertEqual(
+            handled,
+            [
+                (3, "STOP"),
+            ],
+        )
+
     def test_first_loop_emits_periodic_status(self):
         app, runtime, _, transport, _ = self.make_app()
 
@@ -216,8 +304,8 @@ class SchedulerTests(unittest.TestCase):
 
 
 class ReleaseCandidateTests(unittest.TestCase):
-    def test_firmware_version_is_rc5(self):
-        self.assertEqual(firmware_main.FIRMWARE_VERSION, "0.1.0-rc5")
+    def test_firmware_version_is_rc6(self):
+        self.assertEqual(firmware_main.FIRMWARE_VERSION, "0.1.0-rc6")
 
     def test_scheduler_keeps_one_millisecond_idle(self):
         self.assertEqual(firmware_main.LOOP_SLEEP_MS, 1)

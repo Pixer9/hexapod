@@ -46,6 +46,14 @@ class ServoOutputHardware:
                 % (count, self._joint_count)
             )
 
+        self._backend_ranges_cd = tuple(
+            (
+                int(round(float(self._cluster.min_value(channel)) * 100.0)),
+                int(round(float(self._cluster.max_value(channel)) * 100.0)),
+            )
+            for channel in range(self._joint_count)
+        )
+
     @property
     def enabled(self):
         """Return True, False, or None when physical output state is unknown."""
@@ -57,9 +65,7 @@ class ServoOutputHardware:
 
     def backend_value_range_cd(self, channel):
         self._validate_channel(channel)
-        minimum_cd = int(round(float(self._cluster.min_value(channel)) * 100.0))
-        maximum_cd = int(round(float(self._cluster.max_value(channel)) * 100.0))
-        return minimum_cd, maximum_cd
+        return self._backend_ranges_cd[channel]
 
     def profile_compatibility_errors(self, profile):
         errors = []

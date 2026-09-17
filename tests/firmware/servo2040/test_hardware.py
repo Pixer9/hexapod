@@ -114,6 +114,18 @@ class CompatibilityTests(unittest.TestCase):
         hardware = ServoOutputHardware(FakeServoCluster())
         self.assertEqual(hardware.backend_value_range_cd(0), (-9000, 9000))
 
+    def test_backend_ranges_are_cached_at_construction(self):
+        cluster = FakeServoCluster()
+        hardware = ServoOutputHardware(cluster)
+
+        cluster._min_deg[0] = -45.0
+        cluster._max_deg[0] = 45.0
+
+        self.assertEqual(
+            hardware.backend_value_range_cd(0),
+            (-9000, 9000),
+        )
+
     def test_current_profile_has_no_backend_range_mismatches(self):
         hardware = ServoOutputHardware(FakeServoCluster())
         errors = hardware.profile_compatibility_errors(load_profile_view())
